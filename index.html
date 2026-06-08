@@ -3,180 +3,84 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>학교 옥상 태양광 발전 분석 시뮬레이터</title>
+    <title>AI 연동 신재생 태양광 발전 분석 관제 시스템</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
-        body { 
-            font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif; 
-            background-color: #f0f4f8; 
-            margin: 0; 
-            padding: 20px; 
-            color: #333; 
-        }
-        .container { 
-            max-width: 900px; 
-            margin: 0 auto; 
-            background: white; 
-            padding: 30px; 
-            border-radius: 16px; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.08); 
-        }
-        h1 { 
-            text-align: center; 
-            color: #1e3a8a; 
-            margin-bottom: 5px;
-            font-size: 28px;
-        }
-        .subtitle {
-            text-align: center; 
-            color: #6b7280; 
-            margin-bottom: 30px;
-            font-size: 15px;
-        }
+        body { font-family: 'Malgun Gothic', sans-serif; background-color: #f0f4f8; margin: 0; padding: 20px; }
+        .container { max-width: 1000px; margin: 0 auto; background: white; padding: 30px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
+        h1 { text-align: center; color: #1e3a8a; margin-bottom: 5px; }
+        .subtitle { text-align: center; color: #6b7280; margin-bottom: 25px; font-size: 14px; }
         
-        /* 메인 레이아웃: 컨트롤러와 현황판을 가로로 배치 (글자 깨짐 및 밀림 방지) */
-        .main-layout {
-            display: table;
-            width: 100%;
-            table-layout: fixed;
-            margin-bottom: 25px;
-        }
-        .layout-col {
-            display: table-cell;
-            vertical-align: top;
-            width: 50%;
-        }
-        .layout-col:first-child {
-            padding-right: 15px;
-        }
-        .layout-col:last-child {
-            padding-left: 15px;
-        }
-
-        .card {
-            background: #ffffff;
-            border: 1px solid #e5e7eb;
-            padding: 22px;
-            border-radius: 12px;
-            height: 240px; 
-            box-sizing: border-box;
-        }
-        .card h3 {
-            margin-top: 0;
-            margin-bottom: 15px;
-            color: #374151;
-            font-size: 16px;
-            border-left: 4px solid #3b82f6;
-            padding-left: 8px;
-        }
-
-        /* 💡 작동되는 모습을 보여주는 실시간 서버 터미널 로그창 */
-        .simulation-box {
-            background: #1e293b;
-            color: #38bdf8;
-            padding: 12px;
-            border-radius: 8px;
-            font-family: 'Courier New', monospace;
-            font-size: 12px;
-            height: 115px;
-            overflow-y: auto;
-            border: 1px solid #334155;
-            line-height: 1.6;
-        }
-        .sys-log { color: #94a3b8; }
-        .success-log { color: #34d399; font-weight: bold; }
-
-        /* 가전 제어 버튼 그룹 */
-        .btn-group {
-            margin-top: 10px;
-        }
-        button { 
-            width: 100%;
-            color: white; 
-            border: none; 
-            padding: 12px; 
-            font-size: 14px; 
-            border-radius: 8px; 
-            cursor: pointer; 
-            transition: all 0.2s; 
-            font-weight: bold; 
-            margin-bottom: 10px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
-        button:active { transform: scale(0.98); }
-        button.sunny { background: #ea580c; } button.sunny:hover { background: #c2410c; }
-        button.cloudy { background: #64748b; } button.cloudy:hover { background: #475569; }
-        button.rainy { background: #0f172a; } button.rainy:hover { background: #020617; }
-
-        /* 통계 수치 디자인 */
-        .status-item {
-            margin-bottom: 10px;
-            font-size: 14px;
-            color: #4b5563;
-        }
-        .status-item span {
-            float: right;
-            font-size: 17px;
-            font-weight: bold;
-        }
-        .accent-blue { color: #2563eb; }
-        .accent-green { color: #16a34a; }
-        .accent-purple { color: #7c3aed; }
-
-        .chart-container { 
-            width: 100%; 
-            height: 380px; 
-            margin-top: 20px; 
-            background: #f8fafc;
-            padding: 15px;
-            border-radius: 12px;
-            border: 1px solid #e2e8f0;
-            box-sizing: border-box;
-        }
+        /* 로그인 바 디자인 */
+        .auth-bar { background: #f8fafc; padding: 12px 20px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
+        .login-btn { background: #4285f4; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        
+        /* 메인 레이아웃 */
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+        .card { background: white; border: 1px solid #e5e7eb; padding: 20px; border-radius: 12px; min-height: 220px; }
+        .card h3 { margin-top: 0; border-left: 4px solid #2563eb; padding-left: 8px; color: #1e293b; }
+        
+        /* 버튼 및 텍스트 스타일 */
+        button.control { width: 100%; color: white; border: none; padding: 12px; margin-bottom: 8px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px; }
+        .sunny { background: #ea580c; } .cloudy { background: #64748b; } .rainy { background: #0f172a; }
+        .ai-btn { background: #8b5cf6; color: white; border: none; padding: 12px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; }
+        
+        /* 실시간 모니터링 로그 / AI 답변창 */
+        .console-box { background: #1e293b; color: #38bdf8; padding: 12px; border-radius: 8px; height: 110px; overflow-y: auto; font-family: monospace; font-size: 12px; line-height: 1.6; }
+        .ai-response { background: #f5f3ff; border: 1px solid #ddd6fe; padding: 15px; border-radius: 8px; min-height: 80px; font-size: 13px; color: #4c1d95; line-height: 1.6; margin-top: 10px; }
+        
+        .chart-container { background: #f8fafc; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; height: 300px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>☀️ 학교 옥상 태양광 발전 분석 시뮬레이터</h1>
-    <div class="subtitle">전기전자공학 전공 심화 탐구 - 실시간 기후 인자 분석 및 탄소 저감 효율성 검증</div>
+    <h1>☀️ AI 연동 지능형 태양광 발전 관제 시스템</h1>
+    <div class="subtitle">전기전자공학 및 생성형 AI 기술 융합 실시간 에너지 최적화 분석</div>
     
-    <div class="main-layout">
-        <div class="layout-col">
-            <div class="card">
-                <h3>🛠️ 가상 기후 인자 입력 및 시스템 구동</h3>
-                <div class="btn-group">
-                    <button class="sunny" onclick="generateSolarData('맑음', 250)">☀️ 맑음 환경 데이터 생성 (고효율)</button>
-                    <button class="cloudy" onclick="generateSolarData('흐림', 80)">☁️ 흐림 환경 데이터 생성 (중효율)</button>
-                    <button class="rainy" onclick="generateSolarData('비/눈', 15)">🌧️ 저일조 환경 데이터 생성 (저효율)</button>
-                </div>
-            </div>
-        </div>
-        
-        <div class="layout-col">
-            <div class="card">
-                <h3>📊 Firebase 실시간 데이터 연동 현황</h3>
-                <div class="status-item">누적 데이터 송수신 트래픽: <span id="total-count" class="accent-blue">0</span> 회</div>
-                <div class="status-item">누적 태양광 발전량: <span id="total-power" class="accent-green">0</span> kWh</div>
-                <div class="status-item">이산화탄소 절감량: <span id="total-co2" class="accent-purple">0</span> kg</div>
-                
-                <div style="margin-top:15px; font-size:11px; color:#475569; font-weight:bold; margin-bottom:5px;">[시스템 데이터 전송 콘솔]</div>
-                <div class="simulation-box" id="log-box">
-                    <div class="sys-log">> 대기 중... 환경 인자를 발생시키세요.</div>
-                </div>
-            </div>
-        </div>
+    <div class="auth-bar">
+        <span id="user-info" style="font-weight: bold; color: #475569;">🔒 시스템 접근을 위해 로그인이 필요합니다.</span>
+        <button id="auth-btn" class="login-btn" onclick="toggleLogin()">Google 로그인</button>
     </div>
 
-    <div class="chart-container">
-        <canvas id="solarChart"></canvas>
+    <div id="main-dashboard" style="display: none;">
+        <div class="grid">
+            <div class="card">
+                <h3>🛠️ 기후 인자 제어 및 데이터 주입</h3>
+                <button class="control sunny" onclick="generateSolarData('맑음', 250)">☀️ 고일조 환경 인자 주입 (맑음)</button>
+                <button class="control cloudy" onclick="generateSolarData('흐림', 80)">☁️ 중일조 환경 인자 주입 (흐림)</button>
+                <button class="control rainy" onclick="generateSolarData('비/눈', 15)">🌧️ 저일조 환경 인자 주입 (비/눈)</button>
+                
+                <div style="margin-top: 15px; font-size: 13px; font-weight: bold;">[실시간 통계 현황]</div>
+                <p style="margin: 5px 0; font-size: 13px;">누적 데이터 수집: <span id="total-count" style="color:#2563eb; font-weight:bold;">0</span>회 | 누적 전력량: <span id="total-power" style="color:#16a34a; font-weight:bold;">0</span> kWh</p>
+            </div>
+            
+            <div class="card">
+                <h3>📊 전송 관제 콘솔</h3>
+                <div class="console-box" id="log-box">
+                    <div>> 전력망 네트워크 연결 성공.</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card" style="margin-bottom: 20px;">
+            <h3>🤖 [필수] 생성형 AI 전력 분석 및 TTS 음성 브리핑</h3>
+            <p style="margin: 0; font-size: 13px; color: #6b7280;">현재까지 수집된 발전 빅데이터를 기반으로 AI가 전기공학적 그리드 최적화 분석 가이드를 제시합니다.</p>
+            <button class="ai-btn" onclick="askGeminiAI()">Gemini AI 에너지 최적화 리포트 생성 및 음성 안내</button>
+            <div class="ai-response" id="ai-result">AI 분석을 요청하면 결과가 이곳에 출력되고, 음성(TTS) 가이드가 시작됩니다.</div>
+        </div>
+
+        <div class="chart-container">
+            <canvas id="solarChart"></canvas>
+        </div>
     </div>
 </div>
 
 <script>
-    // ⚠️ [필수 확인] 여기에 1단계에서 복사해 둔 네 본인의 Firebase 설정값을 그대로 복사+붙여넣기 해야 연결이 돼!
+    // ⚠️ [필수] 본인의 Firebase 설정 정보 붙여넣기
     const firebaseConfig = {
         apiKey: "YOUR_API_KEY",
         authDomain: "YOUR_AUTH_DOMAIN",
@@ -186,111 +90,145 @@
         messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
         appId: "YOUR_APP_ID"
     };
-    
-    // Firebase 연결 초기화
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
-    const logBox = document.getElementById('log-box');
+    const auth = firebase.auth();
+    
+    // ⚠️ [필수] 본인의 구글 Gemini API 키 입력하기
+    const GEMINI_API_KEY = "YOUR_GEMINI_API_KEY"; 
 
-    // 💡 화면 안의 블랙 박스에 실시간 작동 로그를 출력해 주는 시스템 모니터링 함수
-    function addLog(message, type = 'sys') {
-        const div = document.createElement('div');
-        if(type === 'success') div.className = 'success-log';
-        else div.className = 'sys-log';
-        
-        div.innerText = `[${new Date().toLocaleTimeString()}] ${message}`;
-        logBox.appendChild(div);
-        logBox.scrollTop = logBox.scrollHeight; // 새로운 로그가 생성되면 자동으로 스크롤 다운
+    let currentTotalPower = 0;
+    let currentCount = 0;
+    let currentWeatherStats = {};
+
+    // 1. [필수] Firebase Authentication 구글 로그인 로직
+    function toggleLogin() {
+        if (!auth.currentUser) {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            auth.signInWithPopup(provider);
+        } else {
+            auth.signOut();
+        }
     }
 
-    // 날씨 인자를 받아서 발전량을 계산한 뒤 파이어베이스로 쏘아보내는 함수
+    auth.onAuthStateChanged((user) => {
+        if (user) {
+            document.getElementById('user-info').innerText = `🔓 인증 성공: ${user.displayName} 연구원`;
+            document.getElementById('auth-btn').innerText = "로그아웃";
+            document.getElementById('main-dashboard').style.display = "block";
+            addLog(`인증 완료. 관리자 계정(${user.email})으로 대시보드가 활성화되었습니다.`);
+        } else {
+            document.getElementById('user-info').innerText = "🔒 시스템 접근을 위해 로그인이 필요합니다.";
+            document.getElementById('auth-btn').innerText = "Google 로그인";
+            document.getElementById('main-dashboard').style.display = "none";
+        }
+    });
+
+    // 콘솔 로그 출력용 함수
+    function addLog(msg, isSuccess = false) {
+        const box = document.getElementById('log-box');
+        const div = document.createElement('div');
+        if(isSuccess) div.style.color = '#34d399';
+        div.innerText = `[${new Date().toLocaleTimeString()}] ${msg}`;
+        box.appendChild(div);
+        box.scrollTop = box.scrollHeight;
+    }
+
+    // 2. [필수] Firebase 데이터 실시간 연동 (Push)
     function generateSolarData(weather, basePower) {
-        addLog(`기후 인자 주입 시도... (${weather})`);
-        
-        // 전력 데이터의 현실성을 위한 미세 오차 난수 생성 수식 적용
-        const randomVariation = Math.floor(Math.random() * 20) - 10; 
-        const finalPower = Math.max(5, basePower + randomVariation); 
-        
-        // Firebase Realtime Database로 실시간 데이터 업로드 (solar_logs/ 노드 하위로 축적)
+        addLog(`환경 변수(${weather}) 감지, 데이터 패킷 생성 중...`);
+        const variation = Math.floor(Math.random() * 20) - 10;
+        const finalPower = Math.max(5, basePower + variation);
+
         database.ref('solar_logs/').push({
             weather: weather,
             power: finalPower,
             timestamp: new Date().toLocaleTimeString()
-        }, function(error) {
-            if (error) {
-                addLog(`❌ 데이터 전송 실패: ${error.message}`);
-            } else {
-                // 성공 로그가 출력되면서 작동되는 모습이 눈에 보임
-                addLog(`⚡ [${weather}] 발전 데이터 ${finalPower}kWh 전송 완료!`, 'success');
-            }
+        }, (err) => {
+            if(!err) addLog(`[${weather}] 신재생 출력값 ${finalPower}kWh Firebase 전송 및 백업 완료.`, true);
         });
     }
 
-    // Chart.js 그래프 환경 설정
+    // Chart.js 세팅
     const ctx = document.getElementById('solarChart').getContext('2d');
     const solarChart = new Chart(ctx, {
         type: 'line',
-        data: {
-            labels: [], 
-            datasets: [{
-                label: '누적 실시간 태양광 발전 전력 추이 (kWh)',
-                data: [], 
-                borderColor: '#2563eb',
-                backgroundColor: 'rgba(37, 99, 235, 0.05)',
-                borderWidth: 2.5,
-                fill: true,
-                tension: 0.3,
-                pointRadius: 4,
-                pointBackgroundColor: '#2563eb'
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: { 
-                y: { 
-                    beginAtZero: true,
-                    grid: { color: '#e2e8f0' }
-                },
-                x: {
-                    grid: { display: false }
-                }
-            }
-        }
+        data: { labels: [], datasets: [{ label: '실시간 전력 생산량 (kWh)', data: [], borderColor: '#2563eb', backgroundColor: 'rgba(37, 99, 235, 0.05)', fill: true, tension: 0.2 }] },
+        options: { responsive: true, maintainAspectRatio: false }
     });
 
-    // 파이어베이스 데이터베이스에 변화가 생기면 실시간(On)으로 감지해서 화면을 갱신하는 분석 로직
+    // 2. [필수] Firebase 데이터 실시간 동기화 (조회 및 차트 반영)
     database.ref('solar_logs/').on('value', (snapshot) => {
         const data = snapshot.val();
         if (!data) return;
 
         const labels = [];
         const chartData = [];
-        let totalPower = 0;
-        let count = 0;
+        currentTotalPower = 0;
+        currentCount = 0;
+        currentWeatherStats = { '맑음': 0, '흐림': 0, '비/눈': 0 };
 
-        // 파이어베이스에서 로드된 빅데이터 순회 분석
         Object.keys(data).forEach((key) => {
             const log = data[key];
             labels.push(log.timestamp);
             chartData.push(log.power);
-            totalPower += log.power;
-            count++;
+            currentTotalPower += log.power;
+            currentCount++;
+            if(currentWeatherStats[log.weather] !== undefined) currentWeatherStats[log.weather]++;
         });
 
-        // 수집 완료된 데이터를 토대로 실시간 그래프 동적 갱신
         solarChart.data.labels = labels;
         solarChart.data.datasets[0].data = chartData;
         solarChart.update();
 
-        // 전기-환경 융합공학 분석식 적용 (1kWh당 0.45kg CO2 감축 연산)
-        const totalCo2Saved = (totalPower * 0.45).toFixed(2);
-
-        // 현황판 수치 데이터 바인딩 (.toLocaleString() 함수로 천단위 콤마 자동 처리)
-        document.getElementById('total-count').innerText = count;
-        document.getElementById('total-power').innerText = totalPower.toLocaleString();
-        document.getElementById('total-co2').innerText = parseFloat(totalCo2Saved).toLocaleString();
+        document.getElementById('total-count').innerText = currentCount;
+        document.getElementById('total-power').innerText = currentTotalPower.toLocaleString();
     });
+
+    // 3. [필수] API로 생성형 인공지능 (Gemini) 연동 및 4. [필수] TTS 음성 출력
+    async function askGeminiAI() {
+        if(currentCount === 0) {
+            alert("먼저 날씨 데이터를 몇 개 생성한 후 AI 분석을 요청하세요!");
+            return;
+        }
+
+        document.getElementById('ai-result').innerText = "🤖 Gemini AI가 전력 분석 보고서를 작성 중입니다...";
+        
+        // AI에게 줄 프롬프트에 현재 축적된 빅데이터 요약본을 동적으로 주입
+        const promptText = `너는 지능형 전력망 스마트그리드 AI 분석기야. 현재까지 수집된 태양광 발전 데이터 요약본은 다음과 같아. 총 발전량: ${currentTotalPower}kWh, 데이터 수집 횟수: ${currentCount}회. 이 데이터를 바탕으로, 전력 공급 안정성을 높이기 위한 전기공학과 관점의 피드백을 딱 2문장으로 아주 명확하고 짧게 말해줘. 발표용이니까 정중한 한국어로 요약해줘.`;
+
+        try {
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ contents: [{ parts: [{ text: promptText }] }] })
+            });
+            const resData = await response.json();
+            const aiReply = resData.candidates[0].content.parts[0].text;
+            
+            // 화면에 AI 답변 출력
+            document.getElementById('ai-result').innerText = `🤖 AI 리포트:\n${aiReply}`;
+            addLog("Gemini AI 분석 리포트 수신 완료.");
+
+            // 🔊 [필수] Web Speech API를 활용한 TTS(음성 변환) 작동
+            if ('speechSynthesis' in window) {
+                // 이전에 읽고 있던 음성이 있다면 모두 취소하여 겹침 방지
+                window.speechSynthesis.cancel(); 
+                
+                const utterance = new SpeechSynthesisUtterance(aiReply);
+                utterance.lang = 'ko-KR'; // 한국어 설정
+                utterance.rate = 1.0;     // 속도 1배속
+                window.speechSynthesis.speak(utterance);
+                addLog("TTS 가이드 음성 브리핑을 시작합니다.");
+            } else {
+                addLog("⚠️ 현재 브라우저가 TTS 음성 출력을 지원하지 않습니다.");
+            }
+
+        } catch (error) {
+            document.getElementById('ai-result').innerText = "❌ AI 연동 오류가 발생했습니다. API 키를 확인하세요.";
+            console.error(error);
+        }
+    }
 </script>
 
 </body>
