@@ -3,74 +3,82 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI 연동 신재생 태양광 발전 분석 관제 시스템</title>
+    <title>AI 연동 지능형 스마트홈 전력 제어 및 누진세 예측 시스템</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
-        body { font-family: 'Malgun Gothic', sans-serif; background-color: #f0f4f8; margin: 0; padding: 20px; }
-        .container { max-width: 1000px; margin: 0 auto; background: white; padding: 30px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
-        h1 { text-align: center; color: #1e3a8a; margin-bottom: 5px; }
-        .subtitle { text-align: center; color: #6b7280; margin-bottom: 25px; font-size: 14px; }
+        body { font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif; background-color: #f1f5f9; margin: 0; padding: 20px; }
+        .container { max-width: 1000px; margin: 0 auto; background: white; padding: 30px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        h1 { text-align: center; color: #0f172a; margin-bottom: 5px; font-size: 26px; }
+        .subtitle { text-align: center; color: #64748b; margin-bottom: 25px; font-size: 14px; }
         
         /* 로그인 바 디자인 */
-        .auth-bar { background: #f8fafc; padding: 12px 20px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
-        .login-btn { background: #4285f4; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        .auth-bar { background: #f8fafc; padding: 15px 20px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
+        .login-btn { background: #2563eb; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .login-btn:hover { background: #1d4ed8; }
         
         /* 메인 레이아웃 */
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
-        .card { background: white; border: 1px solid #e5e7eb; padding: 20px; border-radius: 12px; min-height: 220px; }
-        .card h3 { margin-top: 0; border-left: 4px solid #2563eb; padding-left: 8px; color: #1e293b; }
+        .card { background: white; border: 1px solid #e2e8f0; padding: 20px; border-radius: 12px; min-height: 240px; box-sizing: border-box; }
+        .card h3 { margin-top: 0; margin-bottom: 15px; border-left: 4px solid #3b82f6; padding-left: 8px; color: #1e293b; font-size: 16px; }
         
-        /* 버튼 및 텍스트 스타일 */
-        button.control { width: 100%; color: white; border: none; padding: 12px; margin-bottom: 8px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px; }
-        .sunny { background: #ea580c; } .cloudy { background: #64748b; } .rainy { background: #0f172a; }
-        .ai-btn { background: #8b5cf6; color: white; border: none; padding: 12px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; }
+        /* 가전 기기 제어 버튼 */
+        button.control { width: 100%; color: white; border: none; padding: 11px; margin-bottom: 8px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 13px; transition: 0.2s; }
+        button.control:active { transform: scale(0.98); }
+        .aircon { background: #ef4444; } .aircon:hover { background: #dc2626; }
+        .dryer { background: #f59e0b; } .dryer:hover { background: #d97706; }
+        .pc { background: #10b981; } .pc:hover { background: #059669; }
         
-        /* 실시간 모니터링 로그 / AI 답변창 */
-        .console-box { background: #1e293b; color: #38bdf8; padding: 12px; border-radius: 8px; height: 110px; overflow-y: auto; font-family: monospace; font-size: 12px; line-height: 1.6; }
-        .ai-response { background: #f5f3ff; border: 1px solid #ddd6fe; padding: 15px; border-radius: 8px; min-height: 80px; font-size: 13px; color: #4c1d95; line-height: 1.6; margin-top: 10px; }
+        /* 관제 로그창 및 AI 답변창 */
+        .console-box { background: #1e293b; color: #38bdf8; padding: 12px; border-radius: 8px; height: 115px; overflow-y: auto; font-family: monospace; font-size: 12px; line-height: 1.6; }
+        .ai-btn { background: #7c3aed; color: white; border: none; padding: 13px; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; font-size: 14px; }
+        .ai-btn:hover { background: #6d28d9; }
+        .ai-response { background: #f5f3ff; border: 1px solid #ddd6fe; padding: 15px; border-radius: 8px; min-height: 70px; font-size: 13px; color: #4c1d95; line-height: 1.6; margin-top: 10px; white-space: pre-wrap; }
         
-        .chart-container { background: #f8fafc; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; height: 300px; }
+        .chart-container { background: #f8fafc; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; height: 280px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>☀️ AI 연동 지능형 태양광 발전 관제 시스템</h1>
-    <div class="subtitle">전기전자공학 및 생성형 AI 기술 융합 실시간 에너지 최적화 분석</div>
+    <h1>⚡ AI 연동 지능형 스마트홈 전력 관제 및 누진세 예측 시스템</h1>
+    <div class="subtitle">전기전자공학 전공 심화 탐구 - 부하 인자 제어를 통한 에너지 최적화 및 스마트 그리드 설계</div>
     
     <div class="auth-bar">
-        <span id="user-info" style="font-weight: bold; color: #475569;">🔒 시스템 접근을 위해 로그인이 필요합니다.</span>
-        <button id="auth-btn" class="login-btn" onclick="toggleLogin()">Google 로그인</button>
+        <span id="user-info" style="font-weight: bold; color: #475569;">🔒 게이트웨이 보안 전력망 접근을 위해 로그인이 필요합니다.</span>
+        <button id="auth-btn" class="login-btn" onclick="toggleLogin()">Google 계정 인증</button>
     </div>
 
     <div id="main-dashboard" style="display: none;">
         <div class="grid">
             <div class="card">
-                <h3>🛠️ 기후 인자 제어 및 데이터 주입</h3>
-                <button class="control sunny" onclick="generateSolarData('맑음', 250)">☀️ 고일조 환경 인자 주입 (맑음)</button>
-                <button class="control cloudy" onclick="generateSolarData('흐림', 80)">☁️ 중일조 환경 인자 주입 (흐림)</button>
-                <button class="control rainy" onclick="generateSolarData('비/눈', 15)">🌧️ 저일조 환경 인자 주입 (비/눈)</button>
+                <h3>🛠️ 스마트홈 가전 전력 부하 주입</h3>
+                <button class="control aircon" onclick="generatePowerData('인버터 에어컨', 1800)">🔴 에어컨 가동 가하 (1800W)</button>
+                <button class="control dryer" onclick="generatePowerData('의류 건조기', 1200)">🟡 건조기 가동 가하 (1200W)</button>
+                <button class="control pc" onclick="generatePowerData('게이밍 컴퓨터', 350)">🟢 고성능 PC 가동 가하 (350W)</button>
                 
-                <div style="margin-top: 15px; font-size: 13px; font-weight: bold;">[실시간 통계 현황]</div>
-                <p style="margin: 5px 0; font-size: 13px;">누적 데이터 수집: <span id="total-count" style="color:#2563eb; font-weight:bold;">0</span>회 | 누적 전력량: <span id="total-power" style="color:#16a34a; font-weight:bold;">0</span> kWh</p>
+                <div style="margin-top: 15px; font-size: 13px; font-weight: bold; color: #334155;">[실시간 통합 계측 데이터]</div>
+                <p style="margin: 6px 0; font-size: 13px; color: #4b5563;">
+                    가동 횟수: <span id="total-count" style="color:#2563eb; font-weight:bold;">0</span>회 | 
+                    누적 전력 사용량: <span id="total-power" style="color:#16a34a; font-weight:bold;">0</span> kWh
+                </p>
             </div>
             
             <div class="card">
-                <h3>📊 전송 관제 콘솔</h3>
+                <h3>📊 실시간 전력망 원격 송수신 콘솔</h3>
                 <div class="console-box" id="log-box">
-                    <div>> 전력망 네트워크 연결 성공.</div>
+                    <div>> 스마트 홈 전력 게이트웨이 부팅 완료.</div>
                 </div>
             </div>
         </div>
 
-        <div class="card" style="margin-bottom: 20px;">
-            <h3>🤖 [필수] 생성형 AI 전력 분석 및 TTS 음성 브리핑</h3>
-            <p style="margin: 0; font-size: 13px; color: #6b7280;">현재까지 수집된 발전 빅데이터를 기반으로 AI가 전기공학적 그리드 최적화 분석 가이드를 제시합니다.</p>
-            <button class="ai-btn" onclick="askGeminiAI()">Gemini AI 에너지 최적화 리포트 생성 및 음성 안내</button>
-            <div class="ai-response" id="ai-result">AI 분석을 요청하면 결과가 이곳에 출력되고, 음성(TTS) 가이드가 시작됩니다.</div>
+        <div class="card" style="margin-bottom: 20px; min-height: auto;">
+            <h3>🤖 생성형 AI 전력 패턴 분석 및 TTS 음성 브리핑</h3>
+            <p style="margin: 0 0 10px 0; font-size: 13px; color: #64748b;">수집된 가전제품 소비 패턴 빅데이터를 기반으로, AI가 한전 누진세(1~3단계)를 회피하기 위한 최적의 스마트 그리드 가이드를 제시합니다.</p>
+            <button class="ai-btn" onclick="askGeminiAI()">Gemini AI 누진세 진단 리포트 생성 및 음성 출력</button>
+            <div class="ai-response" id="ai-result">AI 분석 요청 시 실시간 리포트가 도출되며, 동시에 TTS 스피커 브리핑이 시작됩니다.</div>
         </div>
 
         <div class="chart-container">
@@ -80,7 +88,7 @@
 </div>
 
 <script>
-    // ⚠️ [필수] 본인의 Firebase 설정 정보 붙여넣기
+    // ⚠️ [필수 설정 1] 내 Firebase 웹 앱 설정값으로 채우기
     const firebaseConfig = {
         apiKey: "YOUR_API_KEY",
         authDomain: "YOUR_AUTH_DOMAIN",
@@ -94,18 +102,22 @@
     const database = firebase.database();
     const auth = firebase.auth();
     
-    // ⚠️ [필수] 본인의 구글 Gemini API 키 입력하기
+    // ⚠️ [필수 설정 2] 내 구글 Gemini API 키 붙여넣기
     const GEMINI_API_KEY = "YOUR_GEMINI_API_KEY"; 
 
     let currentTotalPower = 0;
     let currentCount = 0;
-    let currentWeatherStats = {};
+    let deviceLogSummary = "";
 
-    // 1. [필수] Firebase Authentication 구글 로그인 로직
+    // 1. [필수] Firebase Authentication 구글 로그인 처리
     function toggleLogin() {
         if (!auth.currentUser) {
             const provider = new firebase.auth.GoogleAuthProvider();
-            auth.signInWithPopup(provider);
+            // 로컬(file:///) 환경 보안 차단 방지를 위해 팝업 에러 시 경고창 띄우기 처리
+            auth.signInWithPopup(provider).catch(error => {
+                console.error(error);
+                alert("구글 로그인창 팝업이 차단되었습니다! 만약 내 컴퓨터에서 파일을 직접 열었다면, 수정한 코드를 GitHub에 먼저 올린 뒤 'GitHub Pages 링크' 주소로 접속해 실행하면 완벽하게 팝업이 뜹니다!");
+            });
         } else {
             auth.signOut();
         }
@@ -113,18 +125,18 @@
 
     auth.onAuthStateChanged((user) => {
         if (user) {
-            document.getElementById('user-info').innerText = `🔓 인증 성공: ${user.displayName} 연구원`;
-            document.getElementById('auth-btn').innerText = "로그아웃";
+            document.getElementById('user-info').innerText = `🔓 전력망 제어 인가됨: ${user.displayName} 소장님`;
+            document.getElementById('auth-btn').innerText = "시스템 로그아웃";
             document.getElementById('main-dashboard').style.display = "block";
-            addLog(`인증 완료. 관리자 계정(${user.email})으로 대시보드가 활성화되었습니다.`);
+            addLog(`인증 관리자 계정(${user.email}) 세션 활성화 완료.`);
         } else {
-            document.getElementById('user-info').innerText = "🔒 시스템 접근을 위해 로그인이 필요합니다.";
-            document.getElementById('auth-btn').innerText = "Google 로그인";
+            document.getElementById('user-info').innerText = "🔒 게이트웨이 보안 전력망 접근을 위해 로그인이 필요합니다.";
+            document.getElementById('auth-btn').innerText = "Google 계정 인증";
             document.getElementById('main-dashboard').style.display = "none";
         }
     });
 
-    // 콘솔 로그 출력용 함수
+    // 콘솔 창 로그 프린터 함수
     function addLog(msg, isSuccess = false) {
         const box = document.getElementById('log-box');
         const div = document.createElement('div');
@@ -134,31 +146,36 @@
         box.scrollTop = box.scrollHeight;
     }
 
-    // 2. [필수] Firebase 데이터 실시간 연동 (Push)
-    function generateSolarData(weather, basePower) {
-        addLog(`환경 변수(${weather}) 감지, 데이터 패킷 생성 중...`);
-        const variation = Math.floor(Math.random() * 20) - 10;
-        const finalPower = Math.max(5, basePower + variation);
+    // 2. [필수] Firebase Realtime Database 실시간 전력 데이터 업로드
+    function generatePowerData(device, watt) {
+        addLog(`스마트홈 부하 변동 감지... 기기명: [${device}]`);
+        
+        // 전기공학적 전력 사용량 변동 수식 적용 (현실성 부여를 위한 오차 랜덤 마진)
+        const randomMargin = Math.floor(Math.random() * 50) - 25; 
+        const actualWatt = watt + randomMargin;
+        
+        // 1시간 가동했다고 가정 시 소비전력량 Wh 단위를 kWh 단위로 환산 연산 (Wh / 1000)
+        const kwhCalculated = parseFloat((actualWatt / 1000).toFixed(2));
 
-        database.ref('solar_logs/').push({
-            weather: weather,
-            power: finalPower,
+        database.ref('power_logs/').push({
+            device: device,
+            powerKwh: kwhCalculated,
             timestamp: new Date().toLocaleTimeString()
         }, (err) => {
-            if(!err) addLog(`[${weather}] 신재생 출력값 ${finalPower}kWh Firebase 전송 및 백업 완료.`, true);
+            if(!err) addLog(`[${device}] 부하 패킷 ${kwhCalculated}kWh Firebase 동기화 완료.`, true);
         });
     }
 
-    // Chart.js 세팅
+    // Chart.js 그래프 환경 빌드
     const ctx = document.getElementById('solarChart').getContext('2d');
     const solarChart = new Chart(ctx, {
         type: 'line',
-        data: { labels: [], datasets: [{ label: '실시간 전력 생산량 (kWh)', data: [], borderColor: '#2563eb', backgroundColor: 'rgba(37, 99, 235, 0.05)', fill: true, tension: 0.2 }] },
+        data: { labels: [], datasets: [{ label: '실시간 전력 부하 변동 트렌드 (kWh)', data: [], borderColor: '#2563eb', backgroundColor: 'rgba(37, 99, 235, 0.03)', fill: true, tension: 0.15 }] },
         options: { responsive: true, maintainAspectRatio: false }
     });
 
-    // 2. [필수] Firebase 데이터 실시간 동기화 (조회 및 차트 반영)
-    database.ref('solar_logs/').on('value', (snapshot) => {
+    // 2. [필수] Firebase 데이터 실시간 수집 및 그래프 동적 갱신
+    database.ref('power_logs/').on('value', (snapshot) => {
         const data = snapshot.val();
         if (!data) return;
 
@@ -166,36 +183,39 @@
         const chartData = [];
         currentTotalPower = 0;
         currentCount = 0;
-        currentWeatherStats = { '맑음': 0, '흐림': 0, '비/눈': 0 };
+        let summaryTracker = [];
 
         Object.keys(data).forEach((key) => {
             const log = data[key];
             labels.push(log.timestamp);
-            chartData.push(log.power);
-            currentTotalPower += log.power;
+            chartData.push(log.powerKwh);
+            currentTotalPower += log.powerKwh;
             currentCount++;
-            if(currentWeatherStats[log.weather] !== undefined) currentWeatherStats[log.weather]++;
+            summaryTracker.push(`${log.device}(${log.powerKwh}kWh)`);
         });
 
+        // 하단 그래프 선 실시간 출렁임 구현
         solarChart.data.labels = labels;
         solarChart.data.datasets[0].data = chartData;
         solarChart.update();
 
+        // 실시간 연산 텍스트 갱신
         document.getElementById('total-count').innerText = currentCount;
-        document.getElementById('total-power').innerText = currentTotalPower.toLocaleString();
+        document.getElementById('total-power').innerText = currentTotalPower.toFixed(2);
+        deviceLogSummary = summaryTracker.slice(-5).join(', '); // 최근 5개 기기 로그 요약
     });
 
-    // 3. [필수] API로 생성형 인공지능 (Gemini) 연동 및 4. [필수] TTS 음성 출력
+    // 3. [필수] API 활용 생성형 인공지능 (Gemini) 연동 및 4. [필수] TTS 음성 출력
     async function askGeminiAI() {
         if(currentCount === 0) {
-            alert("먼저 날씨 데이터를 몇 개 생성한 후 AI 분석을 요청하세요!");
+            alert("가전제품 가동 버튼을 클릭해 실시간 데이터를 먼저 누적시킨 후 AI 분석을 진행하세요!");
             return;
         }
 
-        document.getElementById('ai-result').innerText = "🤖 Gemini AI가 전력 분석 보고서를 작성 중입니다...";
+        document.getElementById('ai-result').innerText = "🤖 Gemini AI 스마트 그리드 엔진이 실시간 에너지 누진세를 계산 중입니다...";
         
-        // AI에게 줄 프롬프트에 현재 축적된 빅데이터 요약본을 동적으로 주입
-        const promptText = `너는 지능형 전력망 스마트그리드 AI 분석기야. 현재까지 수집된 태양광 발전 데이터 요약본은 다음과 같아. 총 발전량: ${currentTotalPower}kWh, 데이터 수집 횟수: ${currentCount}회. 이 데이터를 바탕으로, 전력 공급 안정성을 높이기 위한 전기공학과 관점의 피드백을 딱 2문장으로 아주 명확하고 짧게 말해줘. 발표용이니까 정중한 한국어로 요약해줘.`;
+        // AI 프롬프트에 실시간 전력 빅데이터 주입
+        const promptText = `너는 지능형 스마트홈 전력망 인공지능 분석관이야. 현재 가정집에서 수집된 실시간 가전 전력 데이터 요약은 다음과 같아. [누적 전력 소비량: ${currentTotalPower.toFixed(2)}kWh, 최근 가동 가전 로그: ${deviceLogSummary}]. 이 데이터를 바탕으로 주택용 전기요금 누진세 구간(1단계:200이하, 2단계:400이하, 3단계:400초과) 중 어디에 해당할지 예측하고, 전력 요금 폭탄을 피하기 위해 가전을 어떻게 제어해야 하는지 전기공학 관점에서 딱 '2문장'으로 아주 명확하고 짧게 경고 리포트를 말해줘. 반드시 정중한 한국어 문장형으로 요약해야 해.`;
 
         try {
             const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
@@ -206,26 +226,25 @@
             const resData = await response.json();
             const aiReply = resData.candidates[0].content.parts[0].text;
             
-            // 화면에 AI 답변 출력
-            document.getElementById('ai-result').innerText = `🤖 AI 리포트:\n${aiReply}`;
-            addLog("Gemini AI 분석 리포트 수신 완료.");
+            // 화면에 AI 리포트 텍스트 바인딩
+            document.getElementById('ai-result').innerText = `🤖 AI 누진세 진단 결과:\n${aiReply}`;
+            addLog("구글 Gemini AI 분석 보고서 연동 성공.");
 
-            // 🔊 [필수] Web Speech API를 활용한 TTS(음성 변환) 작동
+            // 🔊 [필수] Web Speech API를 이용한 TTS(음성 변환) 가이드 출력
             if ('speechSynthesis' in window) {
-                // 이전에 읽고 있던 음성이 있다면 모두 취소하여 겹침 방지
-                window.speechSynthesis.cancel(); 
+                window.speechSynthesis.cancel(); // 이전 음성 브리핑 강제 종료(오디오 꼬임 방지)
                 
                 const utterance = new SpeechSynthesisUtterance(aiReply);
-                utterance.lang = 'ko-KR'; // 한국어 설정
-                utterance.rate = 1.0;     // 속도 1배속
+                utterance.lang = 'ko-KR'; 
+                utterance.rate = 1.0;     
                 window.speechSynthesis.speak(utterance);
-                addLog("TTS 가이드 음성 브리핑을 시작합니다.");
+                addLog("TTS 인공지능 음성 가이드 브리핑을 가동합니다.");
             } else {
-                addLog("⚠️ 현재 브라우저가 TTS 음성 출력을 지원하지 않습니다.");
+                addLog("⚠️ 이 브라우저는 현재 TTS 시스템 음성 오디오 출력을 지원하지 않습니다.");
             }
 
         } catch (error) {
-            document.getElementById('ai-result').innerText = "❌ AI 연동 오류가 발생했습니다. API 키를 확인하세요.";
+            document.getElementById('ai-result').innerText = "❌ AI 연동 통신에 실패했습니다. Gemini API 키 설정을 확인하세요.";
             console.error(error);
         }
     }
