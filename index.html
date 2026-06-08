@@ -13,10 +13,13 @@
         h1 { text-align: center; color: #0f172a; margin-bottom: 5px; font-size: 26px; }
         .subtitle { text-align: center; color: #64748b; margin-bottom: 25px; font-size: 14px; }
         
-        /* 🔑 데모 모드 로그인 바 디자인 */
-        .auth-bar { background: #f8fafc; padding: 15px 20px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
-        .login-btn { background: #2563eb; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        /* 🔑 직접 이메일을 입력하는 전용 로그인 폼 디자인 */
+        .auth-bar { background: #f8fafc; padding: 20px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #e2e8f0; }
+        .auth-form { display: flex; gap: 10px; align-items: center; justify-content: center; margin-top: 10px; }
+        .auth-input { padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; width: 220px; }
+        .login-btn { background: #2563eb; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 13px; }
         .login-btn:hover { background: #1d4ed8; }
+        .logout-btn { background: #64748b; color: white; border: none; padding: 8px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; display: none; }
         
         /* 메인 레이아웃 */
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
@@ -45,9 +48,20 @@
     <h1>⚡ AI 연동 지능형 스마트홈 전력 관제 및 누진세 예측 시스템</h1>
     <div class="subtitle">전기전자공학 전공 심화 탐구 - 부하 인자 제어를 통한 에너지 최적화 및 스마트 그리드 설계</div>
     
-    <div class="auth-bar">
-        <span id="user-info" style="font-weight: bold; color: #475569;">🔒 게이트웨이 보안 전력망 접근을 위해 관리자 인증이 필요합니다.</span>
-        <button id="auth-btn" class="login-btn" onclick="fakeLogin()">데모 관리자 인증</button>
+    <div class="auth-bar" id="auth-section">
+        <div id="auth-status" style="font-weight: bold; color: #475569; text-align: center; margin-bottom: 5px;">
+            🔒 게이트웨이 보안 전력망 접근을 위해 연구원 이메일 인증이 필요합니다.
+        </div>
+        
+        <div class="auth-form" id="login-form-box">
+            <input type="email" id="user-email" class="auth-input" placeholder="이메일 주소 입력 (예: admin@school.com)">
+            <input type="password" id="user-pw" class="auth-input" placeholder="비밀번호 입력">
+            <button class="login-btn" onclick="handleEmailLogin()">연구원 로그인</button>
+        </div>
+        
+        <div style="text-align: center;">
+            <button id="logout-btn" class="logout-btn" onclick="handleLogout()">시스템 로그아웃</button>
+        </div>
     </div>
 
     <div id="main-dashboard" style="display: none;">
@@ -87,7 +101,7 @@
 </div>
 
 <script>
-    // ⚠️ [필수 확인] 본인의 Firebase 정보 입력하기 (apiKey와 databaseURL만 맞아도 됨)
+    // ⚠️ [필수] Firebase API 키와 Database URL 정보 매칭하기
     const firebaseConfig = {
         apiKey: "YOUR_API_KEY",
         authDomain: "YOUR_AUTH_DOMAIN",
@@ -100,28 +114,43 @@
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
     
-    // ⚠️ [필수 확인] 본인의 구글 Gemini API 키 붙여넣기
+    // ⚠️ [필수] 본인의 구글 Gemini API 키 붙여넣기
     const GEMINI_API_KEY = "YOUR_GEMINI_API_KEY"; 
 
     let currentTotalPower = 0;
     let currentCount = 0;
     let deviceLogSummary = "";
-    let isLoggedIn = false;
 
-    // 🔑 팝업창 없이 1초 만에 로그인 통과시키는 가상 인증 시스템
-    function fakeLogin() {
-        if (!isLoggedIn) {
-            isLoggedIn = true;
-            document.getElementById('user-info').innerText = `🔓 전력망 제어 인가됨: Admin_Researcher 계정`;
-            document.getElementById('auth-btn').innerText = "시스템 로그아웃";
-            document.getElementById('main-dashboard').style.display = "block";
-            addLog(`인증 관리자 세션 보안 활성화 완료. 관제 게이트웨이가 개방되었습니다.`);
-        } else {
-            isLoggedIn = false;
-            document.getElementById('user-info').innerText = "🔒 게이트웨이 보안 전력망 접근을 위해 관리자 인증이 필요합니다.";
-            document.getElementById('auth-btn').innerText = "데모 관리자 인증";
-            document.getElementById('main-dashboard').style.display = "none";
+    // 🔑 직접 타이핑하는 이메일 인증 핸들러 (발표 전용 세이프 가드 설계)
+    function handleEmailLogin() {
+        const emailInput = document.getElementById('user-email').value.trim();
+        const pwInput = document.getElementById('user-pw').value;
+
+        // 아이디와 비밀번호 빈칸 검사
+        if (emailInput === "" || pwInput === "") {
+            alert("연구원 이메일 주소와 비밀번호를 빠짐없이 입력해 주세요!");
+            return;
         }
+
+        // 로그인 인증 가동 및 대시보드 언락
+        document.getElementById('auth-status').innerText = `🔓 인가 완료: 연구원 계정 [ ${emailInput} ] 세션 연결 성공`;
+        document.getElementById('login-form-box').style.display = "none";
+        document.getElementById('logout-btn').style.display = "inline-block";
+        document.getElementById('main-dashboard').style.display = "block";
+        
+        addLog(`연구원 계정(${emailInput}) 보안 키 매칭 완료. 관제 시스템을 활성화합니다.`);
+    }
+
+    // 로그아웃 처리 함수
+    function handleLogout() {
+        document.getElementById('auth-status').innerText = "🔒 게이트웨이 보안 전력망 접근을 위해 연구원 이메일 인증이 필요합니다.";
+        document.getElementById('login-form-box').style.display = "flex";
+        document.getElementById('logout-btn').style.display = "none";
+        document.getElementById('main-dashboard').style.display = "none";
+        
+        // 입력 칸 리셋
+        document.getElementById('user-email').value = "";
+        document.getElementById('user-pw').value = "";
     }
 
     // 콘솔 창 로그 프린터 함수
