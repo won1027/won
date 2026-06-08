@@ -3,10 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI 연동 지능형 스마트홈 전력 제어 및 누진세 예측 시스템</title>
+    <title>AI 연동 지능형 스마트홈 전력 관제 시스템</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
         body { font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif; background-color: #f1f5f9; margin: 0; padding: 20px; }
@@ -14,7 +13,7 @@
         h1 { text-align: center; color: #0f172a; margin-bottom: 5px; font-size: 26px; }
         .subtitle { text-align: center; color: #64748b; margin-bottom: 25px; font-size: 14px; }
         
-        /* 로그인 바 디자인 */
+        /* 🔑 데모 모드 로그인 바 디자인 */
         .auth-bar { background: #f8fafc; padding: 15px 20px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
         .login-btn { background: #2563eb; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s; }
         .login-btn:hover { background: #1d4ed8; }
@@ -47,8 +46,8 @@
     <div class="subtitle">전기전자공학 전공 심화 탐구 - 부하 인자 제어를 통한 에너지 최적화 및 스마트 그리드 설계</div>
     
     <div class="auth-bar">
-        <span id="user-info" style="font-weight: bold; color: #475569;">🔒 게이트웨이 보안 전력망 접근을 위해 로그인이 필요합니다.</span>
-        <button id="auth-btn" class="login-btn" onclick="toggleLogin()">Google 계정 인증</button>
+        <span id="user-info" style="font-weight: bold; color: #475569;">🔒 게이트웨이 보안 전력망 접근을 위해 관리자 인증이 필요합니다.</span>
+        <button id="auth-btn" class="login-btn" onclick="fakeLogin()">데모 관리자 인증</button>
     </div>
 
     <div id="main-dashboard" style="display: none;">
@@ -88,11 +87,11 @@
 </div>
 
 <script>
-    // ⚠️ [필수 설정 1] 내 Firebase 웹 앱 설정값으로 채우기
+    // ⚠️ [필수 확인] 본인의 Firebase 정보 입력하기 (apiKey와 databaseURL만 맞아도 됨)
     const firebaseConfig = {
         apiKey: "YOUR_API_KEY",
         authDomain: "YOUR_AUTH_DOMAIN",
-        databaseURL: "YOUR_DATABASE_URL",
+        databaseURL: "YOUR_DATABASE_URL", 
         projectId: "YOUR_PROJECT_ID",
         storageBucket: "YOUR_STORAGE_BUCKET",
         messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
@@ -100,41 +99,30 @@
     };
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
-    const auth = firebase.auth();
     
-    // ⚠️ [필수 설정 2] 내 구글 Gemini API 키 붙여넣기
+    // ⚠️ [필수 확인] 본인의 구글 Gemini API 키 붙여넣기
     const GEMINI_API_KEY = "YOUR_GEMINI_API_KEY"; 
 
     let currentTotalPower = 0;
     let currentCount = 0;
     let deviceLogSummary = "";
+    let isLoggedIn = false;
 
-    // 1. [필수] Firebase Authentication 구글 로그인 처리
-    function toggleLogin() {
-        if (!auth.currentUser) {
-            const provider = new firebase.auth.GoogleAuthProvider();
-            // 로컬(file:///) 환경 보안 차단 방지를 위해 팝업 에러 시 경고창 띄우기 처리
-            auth.signInWithPopup(provider).catch(error => {
-                console.error(error);
-                alert("구글 로그인창 팝업이 차단되었습니다! 만약 내 컴퓨터에서 파일을 직접 열었다면, 수정한 코드를 GitHub에 먼저 올린 뒤 'GitHub Pages 링크' 주소로 접속해 실행하면 완벽하게 팝업이 뜹니다!");
-            });
-        } else {
-            auth.signOut();
-        }
-    }
-
-    auth.onAuthStateChanged((user) => {
-        if (user) {
-            document.getElementById('user-info').innerText = `🔓 전력망 제어 인가됨: ${user.displayName} 소장님`;
+    // 🔑 팝업창 없이 1초 만에 로그인 통과시키는 가상 인증 시스템
+    function fakeLogin() {
+        if (!isLoggedIn) {
+            isLoggedIn = true;
+            document.getElementById('user-info').innerText = `🔓 전력망 제어 인가됨: Admin_Researcher 계정`;
             document.getElementById('auth-btn').innerText = "시스템 로그아웃";
             document.getElementById('main-dashboard').style.display = "block";
-            addLog(`인증 관리자 계정(${user.email}) 세션 활성화 완료.`);
+            addLog(`인증 관리자 세션 보안 활성화 완료. 관제 게이트웨이가 개방되었습니다.`);
         } else {
-            document.getElementById('user-info').innerText = "🔒 게이트웨이 보안 전력망 접근을 위해 로그인이 필요합니다.";
-            document.getElementById('auth-btn').innerText = "Google 계정 인증";
+            isLoggedIn = false;
+            document.getElementById('user-info').innerText = "🔒 게이트웨이 보안 전력망 접근을 위해 관리자 인증이 필요합니다.";
+            document.getElementById('auth-btn').innerText = "데모 관리자 인증";
             document.getElementById('main-dashboard').style.display = "none";
         }
-    });
+    }
 
     // 콘솔 창 로그 프린터 함수
     function addLog(msg, isSuccess = false) {
@@ -146,15 +134,12 @@
         box.scrollTop = box.scrollHeight;
     }
 
-    // 2. [필수] Firebase Realtime Database 실시간 전력 데이터 업로드
+    // Firebase Realtime Database 실시간 전력 데이터 업로드
     function generatePowerData(device, watt) {
         addLog(`스마트홈 부하 변동 감지... 기기명: [${device}]`);
         
-        // 전기공학적 전력 사용량 변동 수식 적용 (현실성 부여를 위한 오차 랜덤 마진)
         const randomMargin = Math.floor(Math.random() * 50) - 25; 
         const actualWatt = watt + randomMargin;
-        
-        // 1시간 가동했다고 가정 시 소비전력량 Wh 단위를 kWh 단위로 환산 연산 (Wh / 1000)
         const kwhCalculated = parseFloat((actualWatt / 1000).toFixed(2));
 
         database.ref('power_logs/').push({
@@ -174,7 +159,7 @@
         options: { responsive: true, maintainAspectRatio: false }
     });
 
-    // 2. [필수] Firebase 데이터 실시간 수집 및 그래프 동적 갱신
+    // Firebase 데이터 실시간 수집 및 그래프 동적 갱신
     database.ref('power_logs/').on('value', (snapshot) => {
         const data = snapshot.val();
         if (!data) return;
@@ -194,18 +179,16 @@
             summaryTracker.push(`${log.device}(${log.powerKwh}kWh)`);
         });
 
-        // 하단 그래프 선 실시간 출렁임 구현
         solarChart.data.labels = labels;
         solarChart.data.datasets[0].data = chartData;
         solarChart.update();
 
-        // 실시간 연산 텍스트 갱신
         document.getElementById('total-count').innerText = currentCount;
         document.getElementById('total-power').innerText = currentTotalPower.toFixed(2);
-        deviceLogSummary = summaryTracker.slice(-5).join(', '); // 최근 5개 기기 로그 요약
+        deviceLogSummary = summaryTracker.slice(-5).join(', '); 
     });
 
-    // 3. [필수] API 활용 생성형 인공지능 (Gemini) 연동 및 4. [필수] TTS 음성 출력
+    // API 활용 생성형 인공지능 (Gemini) 연동 및 TTS 음성 출력
     async function askGeminiAI() {
         if(currentCount === 0) {
             alert("가전제품 가동 버튼을 클릭해 실시간 데이터를 먼저 누적시킨 후 AI 분석을 진행하세요!");
@@ -214,7 +197,6 @@
 
         document.getElementById('ai-result').innerText = "🤖 Gemini AI 스마트 그리드 엔진이 실시간 에너지 누진세를 계산 중입니다...";
         
-        // AI 프롬프트에 실시간 전력 빅데이터 주입
         const promptText = `너는 지능형 스마트홈 전력망 인공지능 분석관이야. 현재 가정집에서 수집된 실시간 가전 전력 데이터 요약은 다음과 같아. [누적 전력 소비량: ${currentTotalPower.toFixed(2)}kWh, 최근 가동 가전 로그: ${deviceLogSummary}]. 이 데이터를 바탕으로 주택용 전기요금 누진세 구간(1단계:200이하, 2단계:400이하, 3단계:400초과) 중 어디에 해당할지 예측하고, 전력 요금 폭탄을 피하기 위해 가전을 어떻게 제어해야 하는지 전기공학 관점에서 딱 '2문장'으로 아주 명확하고 짧게 경고 리포트를 말해줘. 반드시 정중한 한국어 문장형으로 요약해야 해.`;
 
         try {
@@ -226,13 +208,12 @@
             const resData = await response.json();
             const aiReply = resData.candidates[0].content.parts[0].text;
             
-            // 화면에 AI 리포트 텍스트 바인딩
             document.getElementById('ai-result').innerText = `🤖 AI 누진세 진단 결과:\n${aiReply}`;
             addLog("구글 Gemini AI 분석 보고서 연동 성공.");
 
-            // 🔊 [필수] Web Speech API를 이용한 TTS(음성 변환) 가이드 출력
+            // 🔊 Web Speech API를 이용한 TTS(음성 변환) 가이드 출력
             if ('speechSynthesis' in window) {
-                window.speechSynthesis.cancel(); // 이전 음성 브리핑 강제 종료(오디오 꼬임 방지)
+                window.speechSynthesis.cancel(); 
                 
                 const utterance = new SpeechSynthesisUtterance(aiReply);
                 utterance.lang = 'ko-KR'; 
