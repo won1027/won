@@ -3,44 +3,170 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>학교 옥상 태양광 발전 효율 시뮬레이터</title>
+    <title>학교 옥상 태양광 발전 분석 시뮬레이터</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
-        body { font-family: 'Arial', sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; color: #333; }
-        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        h1, h2 { text-align: center; color: #2c3e50; }
-        .panel { display: flex; justify-content: space-around; background: #eef2f3; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
-        button { background: #3498db; color: white; border: none; padding: 12px 24px; font-size: 16px; border-radius: 6px; cursor: pointer; transition: 0.3s; font-weight: bold; }
-        button:hover { background: #2980b9; }
-        button.sunny { background: #e67e22; } button.sunny:hover { background: #d35400; }
-        button.cloudy { background: #7f8c8d; } button.cloudy:hover { background: #718093; }
-        button.rainy { background: #2c3e50; } button.rainy:hover { background: #1a252f; }
-        .chart-container { width: 100%; height: 400px; margin-top: 30px; }
+        body { 
+            font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif; 
+            background-color: #f0f4f8; 
+            margin: 0; 
+            padding: 20px; 
+            color: #333; 
+        }
+        .container { 
+            max-width: 900px; 
+            margin: 0 auto; 
+            background: white; 
+            padding: 30px; 
+            border-radius: 16px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08); 
+        }
+        h1 { 
+            text-align: center; 
+            color: #1e3a8a; 
+            margin-bottom: 5px;
+            font-size: 28px;
+        }
+        .subtitle {
+            text-align: center; 
+            color: #6b7280; 
+            margin-bottom: 30px;
+            font-size: 15px;
+        }
+        
+        /* 메인 레이아웃: 컨트롤러와 현황판을 가로로 배치 (글자 깨짐 및 밀림 방지) */
+        .main-layout {
+            display: table;
+            width: 100%;
+            table-layout: fixed;
+            margin-bottom: 25px;
+        }
+        .layout-col {
+            display: table-cell;
+            vertical-align: top;
+            width: 50%;
+        }
+        .layout-col:first-child {
+            padding-right: 15px;
+        }
+        .layout-col:last-child {
+            padding-left: 15px;
+        }
+
+        .card {
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            padding: 22px;
+            border-radius: 12px;
+            height: 240px; 
+            box-sizing: border-box;
+        }
+        .card h3 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            color: #374151;
+            font-size: 16px;
+            border-left: 4px solid #3b82f6;
+            padding-left: 8px;
+        }
+
+        /* 💡 작동되는 모습을 보여주는 실시간 서버 터미널 로그창 */
+        .simulation-box {
+            background: #1e293b;
+            color: #38bdf8;
+            padding: 12px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            height: 115px;
+            overflow-y: auto;
+            border: 1px solid #334155;
+            line-height: 1.6;
+        }
+        .sys-log { color: #94a3b8; }
+        .success-log { color: #34d399; font-weight: bold; }
+
+        /* 가전 제어 버튼 그룹 */
+        .btn-group {
+            margin-top: 10px;
+        }
+        button { 
+            width: 100%;
+            color: white; 
+            border: none; 
+            padding: 12px; 
+            font-size: 14px; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            transition: all 0.2s; 
+            font-weight: bold; 
+            margin-bottom: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        button:active { transform: scale(0.98); }
+        button.sunny { background: #ea580c; } button.sunny:hover { background: #c2410c; }
+        button.cloudy { background: #64748b; } button.cloudy:hover { background: #475569; }
+        button.rainy { background: #0f172a; } button.rainy:hover { background: #020617; }
+
+        /* 통계 수치 디자인 */
+        .status-item {
+            margin-bottom: 10px;
+            font-size: 14px;
+            color: #4b5563;
+        }
+        .status-item span {
+            float: right;
+            font-size: 17px;
+            font-weight: bold;
+        }
+        .accent-blue { color: #2563eb; }
+        .accent-green { color: #16a34a; }
+        .accent-purple { color: #7c3aed; }
+
+        .chart-container { 
+            width: 100%; 
+            height: 380px; 
+            margin-top: 20px; 
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            box-sizing: border-box;
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
     <h1>☀️ 학교 옥상 태양광 발전 분석 시뮬레이터</h1>
-    <p style="text-align: center; color: #666;">전기전자공학과 수행평가 - 가상 날씨 환경 분석 및 탄소 배출 저감 통계</p>
+    <div class="subtitle">전기전자공학 전공 심화 탐구 - 실시간 기후 인자 분석 및 탄소 저감 효율성 검증</div>
     
-    <div class="panel">
-        <div>
-            <h3>1. 현재 가상 날씨 선택</h3>
-            <button class="sunny" onclick="generateSolarData('맑음', 250)">☀️ 맑음 (효율 고)</button>
-            <button class="cloudy" onclick="generateSolarData('흐림', 80)">☁️ 흐림 (효율 중)</button>
-            <button class="rainy" onclick="generateSolarData('비/눈', 15)">🌧️ 비/눈 (효율 저)</button>
+    <div class="main-layout">
+        <div class="layout-col">
+            <div class="card">
+                <h3>🛠️ 가상 기후 인자 입력 및 시스템 구동</h3>
+                <div class="btn-group">
+                    <button class="sunny" onclick="generateSolarData('맑음', 250)">☀️ 맑음 환경 데이터 생성 (고효율)</button>
+                    <button class="cloudy" onclick="generateSolarData('흐림', 80)">☁️ 흐림 환경 데이터 생성 (중효율)</button>
+                    <button class="rainy" onclick="generateSolarData('비/눈', 15)">🌧️ 저일조 환경 데이터 생성 (저효율)</button>
+                </div>
+            </div>
         </div>
-    </div>
-
-    <div class="panel" style="background-color: #e8f8f5;">
-        <div style="text-align: center;">
-            <h3>📊 누적 통계 데이터 (Firebase 연동)</h3>
-            <p>총 가동 횟수: <span id="total-count" style="font-weight: bold; color: #16a085;">0</span>회</p>
-            <p>누적 발전량: <span id="total-power" style="font-weight: bold; color: #27ae60;">0</span> kWh</p>
-            <p>이산화탄소($CO_2$) 감축량: <span id="total-co2" style="font-weight: bold; color: #2980b9;">0</span> kg</p>
+        
+        <div class="layout-col">
+            <div class="card">
+                <h3>📊 Firebase 실시간 데이터 연동 현황</h3>
+                <div class="status-item">누적 데이터 송수신 트래픽: <span id="total-count" class="accent-blue">0</span> 회</div>
+                <div class="status-item">누적 태양광 발전량: <span id="total-power" class="accent-green">0</span> kWh</div>
+                <div class="status-item">이산화탄소 절감량: <span id="total-co2" class="accent-purple">0</span> kg</div>
+                
+                <div style="margin-top:15px; font-size:11px; color:#475569; font-weight:bold; margin-bottom:5px;">[시스템 데이터 전송 콘솔]</div>
+                <div class="simulation-box" id="log-box">
+                    <div class="sys-log">> 대기 중... 환경 인자를 발생시키세요.</div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -50,7 +176,7 @@
 </div>
 
 <script>
-    // ⚠️ [중요] 여기에 아까 1단계 4번에서 복사한 본인의 Firebase 설정값을 그대로 덮어씌우세요!
+    // ⚠️ [필수 확인] 여기에 1단계에서 복사해 둔 네 본인의 Firebase 설정값을 그대로 복사+붙여넣기 해야 연결이 돼!
     const firebaseConfig = {
         apiKey: "YOUR_API_KEY",
         authDomain: "YOUR_AUTH_DOMAIN",
@@ -61,48 +187,79 @@
         appId: "YOUR_APP_ID"
     };
     
-    // Firebase 초기화
+    // Firebase 연결 초기화
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
+    const logBox = document.getElementById('log-box');
 
-    // 태양광 발전량 수식 계산 및 Firebase 전송 함수
-    function generateSolarData(weather, basePower) {
-        // 전기공학 수식 가미: 약간의 오차(랜덤값)를 주어 자연스러운 실제 데이터처럼 가공
-        const randomVariation = Math.floor(Math.random() * 20) - 10; // -10 ~ +10 사이 오차
-        const finalPower = Math.max(5, basePower + randomVariation); // 발전량이 0 이하로 내려가지 않게 설정
+    // 💡 화면 안의 블랙 박스에 실시간 작동 로그를 출력해 주는 시스템 모니터링 함수
+    function addLog(message, type = 'sys') {
+        const div = document.createElement('div');
+        if(type === 'success') div.className = 'success-log';
+        else div.className = 'sys-log';
         
-        // 데이터 구조화하여 Firebase Realtime Database에 Push (실시간 축적)
+        div.innerText = `[${new Date().toLocaleTimeString()}] ${message}`;
+        logBox.appendChild(div);
+        logBox.scrollTop = logBox.scrollHeight; // 새로운 로그가 생성되면 자동으로 스크롤 다운
+    }
+
+    // 날씨 인자를 받아서 발전량을 계산한 뒤 파이어베이스로 쏘아보내는 함수
+    function generateSolarData(weather, basePower) {
+        addLog(`기후 인자 주입 시도... (${weather})`);
+        
+        // 전력 데이터의 현실성을 위한 미세 오차 난수 생성 수식 적용
+        const randomVariation = Math.floor(Math.random() * 20) - 10; 
+        const finalPower = Math.max(5, basePower + randomVariation); 
+        
+        // Firebase Realtime Database로 실시간 데이터 업로드 (solar_logs/ 노드 하위로 축적)
         database.ref('solar_logs/').push({
             weather: weather,
             power: finalPower,
             timestamp: new Date().toLocaleTimeString()
+        }, function(error) {
+            if (error) {
+                addLog(`❌ 데이터 전송 실패: ${error.message}`);
+            } else {
+                // 성공 로그가 출력되면서 작동되는 모습이 눈에 보임
+                addLog(`⚡ [${weather}] 발전 데이터 ${finalPower}kWh 전송 완료!`, 'success');
+            }
         });
     }
 
-    // Chart.js 그래프 설정
+    // Chart.js 그래프 환경 설정
     const ctx = document.getElementById('solarChart').getContext('2d');
     const solarChart = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: [], // 시간 데이터가 들어갈 곳
+            labels: [], 
             datasets: [{
-                label: '실시간 태양광 발전량 (kWh)',
-                data: [], // 발전량 숫자가 들어갈 곳
-                borderColor: '#e67e22',
-                backgroundColor: 'rgba(230, 126, 34, 0.1)',
-                borderWidth: 3,
+                label: '누적 실시간 태양광 발전 전력 추이 (kWh)',
+                data: [], 
+                borderColor: '#2563eb',
+                backgroundColor: 'rgba(37, 99, 235, 0.05)',
+                borderWidth: 2.5,
                 fill: true,
-                tension: 0.3
+                tension: 0.3,
+                pointRadius: 4,
+                pointBackgroundColor: '#2563eb'
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            scales: { y: { beginAtZero: true } }
+            scales: { 
+                y: { 
+                    beginAtZero: true,
+                    grid: { color: '#e2e8f0' }
+                },
+                x: {
+                    grid: { display: false }
+                }
+            }
         }
     });
 
-    // Firebase로부터 실시간 데이터 갱신 감지 (데이터 분석 및 시각화 반영)
+    // 파이어베이스 데이터베이스에 변화가 생기면 실시간(On)으로 감지해서 화면을 갱신하는 분석 로직
     database.ref('solar_logs/').on('value', (snapshot) => {
         const data = snapshot.val();
         if (!data) return;
@@ -112,7 +269,7 @@
         let totalPower = 0;
         let count = 0;
 
-        // 빅데이터 가공 프로세스
+        // 파이어베이스에서 로드된 빅데이터 순회 분석
         Object.keys(data).forEach((key) => {
             const log = data[key];
             labels.push(log.timestamp);
@@ -121,19 +278,18 @@
             count++;
         });
 
-        // 그래프 업데이트
+        // 수집 완료된 데이터를 토대로 실시간 그래프 동적 갱신
         solarChart.data.labels = labels;
         solarChart.data.datasets[0].data = chartData;
         solarChart.update();
 
-        // 전기 및 환경 공학 데이터 분석 통계치 계산
-        // 대한민국 전력 배출계수 기준: 1kWh 생산당 약 0.45kg의 CO2 발생 절감 효과
+        // 전기-환경 융합공학 분석식 적용 (1kWh당 0.45kg CO2 감축 연산)
         const totalCo2Saved = (totalPower * 0.45).toFixed(2);
 
-        // 화면에 결과 반영
+        // 현황판 수치 데이터 바인딩 (.toLocaleString() 함수로 천단위 콤마 자동 처리)
         document.getElementById('total-count').innerText = count;
-        document.getElementById('total-power').innerText = totalPower;
-        document.getElementById('total-co2').innerText = totalCo2Saved;
+        document.getElementById('total-power').innerText = totalPower.toLocaleString();
+        document.getElementById('total-co2').innerText = parseFloat(totalCo2Saved).toLocaleString();
     });
 </script>
 
