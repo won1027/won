@@ -13,7 +13,6 @@
       background: linear-gradient(135deg, #e0f2f1, #e8eaf6);
       font-family: Arial, sans-serif;
       color: #333;
-      /* 로그인창과 대시보드 모두 안정적으로 중앙 배치 및 레이아웃 유지를 위해 수정 */
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -21,7 +20,7 @@
       padding: 20px 0;
     }
 
-    /* [로그인 상자] 초기 디스플레이 상태를 확실하게 투명도와 함께 노출 */
+    /* 로그인 상자 */
     .auth-box { 
       display: block; 
       width: min(420px, 92%); 
@@ -33,7 +32,7 @@
       box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12);
     }
     
-    /* [메인 대시보드 상자] 처음에 무조건 완전히 숨김 처리 */
+    /* 대시보드 상자 (처음엔 숨김) */
     .container {
       display: none; 
       width: min(900px, 92%); 
@@ -72,7 +71,9 @@
     .history-zone { margin-top: 20px; }
     .history-list { max-height: 180px; overflow-y: auto; background: #fafafa; border: 1px solid #e0e0e0; border-radius: 12px; padding: 12px; font-size: 13px; }
     .history-item { padding: 6px 0; border-bottom: 1px dashed #e0e0e0; }
-    .status { min-height: 24px; color: #666; font-size: 13px; margin-top: 10px; text-align: center; font-weight: bold; }
+    
+    /* 상태 창 스타일 고도화 (에러 가시성 확보) */
+    .status { min-height: 24px; color: #e53935; font-size: 13px; margin-top: 10px; text-align: center; font-weight: bold; }
     .user-info { text-align: right; font-size: 13px; color: #555; margin-bottom: 15px; font-weight: bold; }
   </style>
 
@@ -143,7 +144,7 @@
         <button class="ask-btn" id="saveBtn">전력 데이터 전송</button>
       </div>
 
-      <div id="mainStatus" class="status"></div>
+      <div id="mainStatus" class="status" style="color: #2e7d32;"></div>
 
       <div>
         <div class="label">실시간 계산 결과 (전기공학 공식 적용)</div>
@@ -158,7 +159,7 @@
   </div>
 
   <script>
-    // ⚠️ 나의 실제 파이어베이스 설정값값으로 수정하세요!
+    // ⚠️ 나의 실제 파이어베이스 설정값으로 반드시 수정하세요!
     const firebaseConfig = {
       apiKey: "YOUR_API_KEY",
       authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
@@ -174,7 +175,7 @@
     const auth = firebase.auth();
     const database = firebase.database();
 
-    // DOM 요소 연결
+    // DOM 연결
     const authSection = document.getElementById('authSection');
     const dashboardSection = document.getElementById('dashboardSection');
     const authEmail = document.getElementById('authEmail');
@@ -186,21 +187,25 @@
     let currentUser = null;
     let dbRef = null;
 
-    // --- [인증 및 접속 기록 로깅 기능] ---
-    
     // 회원가입
     document.getElementById('signUpBtn').addEventListener('click', () => {
       const email = authEmail.value.trim();
       const password = authPassword.value;
       if(!email || !password) { alert('이메일과 비밀번호를 입력하세요.'); return; }
       
+      authStatus.style.color = '#333';
       authStatus.textContent = '회원가입 진행 중...';
+      
       auth.createUserWithEmailAndPassword(email, password)
         .then((userCredential) => { 
+          authStatus.style.color = '#2e7d32';
           authStatus.textContent = '회원가입 성공!';
           logUserAccess(userCredential.user, "회원가입 및 최초 접속");
         })
-        .catch(err => { authStatus.textContent = '오류: ' + err.message; });
+        .catch(err => { 
+          authStatus.style.color = '#e53935';
+          authStatus.textContent = '가입 실패 원인: ' + err.message; 
+        });
     });
 
     // 로그인
@@ -209,13 +214,19 @@
       const password = authPassword.value;
       if(!email || !password) { alert('이메일과 비밀번호를 입력하세요.'); return; }
       
+      authStatus.style.color = '#333';
       authStatus.textContent = '로그인 진행 중...';
+      
       auth.signInWithEmailAndPassword(email, password)
         .then((userCredential) => { 
+          authStatus.style.color = '#2e7d32';
           authStatus.textContent = '로그인 성공!';
           logUserAccess(userCredential.user, "기존 회원 로그인 접속");
         })
-        .catch(err => { authStatus.textContent = '오류: ' + err.message; });
+        .catch(err => { 
+          authStatus.style.color = '#e53935';
+          authStatus.textContent = '로그인 실패 원인: ' + err.message; 
+        });
     });
 
     // 로그아웃
@@ -229,7 +240,7 @@
       auth.signOut().then(() => { alert('로그아웃 되었습니다.'); });
     });
 
-    // 파이어베이스 콘솔에 접속 유저 이력(시간, 이메일) 쌓기 함수
+    // 접속 이력 남기기 함수
     function logUserAccess(user, actionType) {
       const accessTime = new Date().toLocaleString();
       database.ref('user_sessions/' + user.uid).set({
@@ -240,18 +251,16 @@
       });
     }
 
-    // ⭐️ 화면 전환 상태 감시자 블록 (가장 안정적인 block/none 방식으로 보완)
+    // 화면 제어 감시자 함수
     auth.onAuthStateChanged((user) => {
       if (user) {
-        // 로그인 완료 -> 대시보드 표시, 로그인창 숨김
         currentUser = user;
         authSection.style.display = 'none';
         dashboardSection.style.display = 'block';
         userDisplay.textContent = user.email;
-        mainStatus.textContent = '보안 서버 연결 성공.';
+        mainStatus.textContent = '보안 클라우드 서버와 성공적으로 연결되었습니다.';
         loadUserData(user.uid);
       } else {
-        // 로그아웃 상태 -> 로그인창 표시, 대시보드 숨김
         if (dbRef) dbRef.off();
         currentUser = null;
         authSection.style.display = 'block';
@@ -262,7 +271,7 @@
       }
     });
 
-    // --- [전력 모니터링 데이터 처리 로직] ---
+    // --- 데이터 비즈니스 로직 ---
     const deviceNameInput = document.getElementById('deviceName');
     const voltageInput = document.getElementById('voltage');
     const currentInput = document.getElementById('current');
