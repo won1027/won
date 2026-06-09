@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Firebase 로그인 데이터 관리</title>
+  <title>전기전자공학 AI 통합 연구 플랫폼</title>
   <style>
     * {
       box-sizing: border-box;
@@ -18,7 +18,7 @@
     }
 
     .container {
-      width: min(900px, 92%);
+      width: min(1000px, 94%);
       margin: 40px auto;
       background: #ffffff;
       border-radius: 24px;
@@ -30,11 +30,7 @@
       margin: 0 0 8px;
       text-align: center;
       font-size: 28px;
-    }
-
-    h2 {
-      margin-top: 0;
-      font-size: 22px;
+      color: #1e88e5;
     }
 
     .subtitle {
@@ -44,185 +40,23 @@
       font-size: 14px;
     }
 
+    /* 인증 섹션 스타일 */
     .auth-box {
       max-width: 420px;
-      margin: 0 auto;
+      margin: 40px auto;
       display: flex;
       flex-direction: column;
       gap: 12px;
     }
 
-    input {
-      height: 46px;
-      padding: 0 14px;
-      border: 1px solid #ddd;
-      border-radius: 12px;
-      font-size: 15px;
-      outline: none;
-    }
-
-    input:focus {
-      border-color: #42a5f5;
-      box-shadow: 0 0 0 3px rgba(66, 165, 245, 0.15);
-    }
-
-    button {
-      border: none;
-      border-radius: 12px;
-      padding: 0 16px;
-      height: 46px;
-      font-size: 15px;
-      cursor: pointer;
-      transition: 0.15s;
-      font-weight: bold;
-    }
-
-    button:hover {
-      transform: translateY(-2px);
-      opacity: 0.9;
-    }
-
-    .login-btn {
-      background: #42a5f5;
-      color: white;
-    }
-
-    .signup-btn {
-      background: #7e57c2;
-      color: white;
-    }
-
-    .logout-btn {
-      background: #455a64;
-      color: white;
-    }
-
-    .add-btn {
-      background: #42a5f5;
-      color: white;
-    }
-
-    .refresh-btn {
-      background: #66bb6a;
-      color: white;
-      margin-bottom: 16px;
-    }
-
-    .edit-btn {
-      background: #ffca28;
-      color: #333;
-    }
-
-    .delete-btn {
-      background: #ef5350;
-      color: white;
-    }
-
-    .save-btn {
-      background: #7e57c2;
-      color: white;
-    }
-
-    .cancel-btn {
-      background: #b0bec5;
-      color: white;
-    }
-
-    .form-box {
-      display: grid;
-      grid-template-columns: 1fr 2fr auto;
-      gap: 10px;
-      margin-bottom: 22px;
-    }
-
-    .top-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 22px;
-      padding: 14px;
-      border-radius: 16px;
-      background: #f7f9fb;
-    }
-
-    .user-info {
-      font-size: 14px;
-      color: #555;
-      word-break: break-all;
-    }
-
-    .status {
-      min-height: 24px;
-      margin-bottom: 14px;
-      color: #e53935; /* 오류 가시성을 위해 색상 강조 */
-      font-size: 14px;
-      font-weight: bold;
-      text-align: center;
-    }
-
-    .list {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .item {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 12px;
-      align-items: center;
-      padding: 16px;
-      border-radius: 16px;
-      background: #f7f9fb;
-      border: 1px solid #edf1f5;
-    }
-
-    .item-title {
-      margin: 0 0 6px;
-      font-size: 18px;
-      font-weight: bold;
-    }
-
-    .item-content {
-      margin: 0;
-      color: #555;
-      line-height: 1.5;
-      word-break: break-all;
-    }
-
-    .item-date {
-      margin-top: 8px;
-      font-size: 12px;
-      color: #999;
-    }
-
-    .item-actions {
-      display: flex;
-      gap: 8px;
-    }
-
-    .edit-box {
-      display: grid;
-      grid-template-columns: 1fr 2fr auto auto;
-      gap: 8px;
-      width: 100%;
-    }
-
-    .empty {
-      text-align: center;
-      padding: 30px;
-      color: #888;
-      background: #f7f9fb;
-      border-radius: 16px;
-    }
-
-    .hidden {
-      display: none;
+    h2 {
+      margin-top: 0;
+      font-size: 22px;
+      color: #424242;
     }
 
     .notice {
-      max-width: 620px;
+      max-width: 420px;
       margin: 20px auto 0;
       padding: 14px;
       border-radius: 14px;
@@ -232,81 +66,319 @@
       line-height: 1.6;
     }
 
-    @media (max-width: 700px) {
-      .form-box,
-      .item,
-      .edit-box,
-      .top-bar {
-        grid-template-columns: 1fr;
-        flex-direction: column;
-        align-items: stretch;
-      }
+    /* 공통 입력창 및 버튼 */
+    input, select, textarea {
+      padding: 12px 14px;
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      font-size: 15px;
+      outline: none;
+      font-family: Arial, sans-serif;
+    }
 
-      .item-actions {
-        justify-content: flex-end;
-      }
+    input:focus, select:focus, textarea:focus {
+      border-color: #42a5f5;
+      box-shadow: 0 0 0 3px rgba(66, 165, 245, 0.15);
+    }
+
+    input { height: 46px; }
+    select { height: 44px; }
+    textarea { width: 100%; min-height: 140px; resize: vertical; line-height: 1.5; }
+
+    button, .download-link {
+      border: none;
+      border-radius: 12px;
+      padding: 0 16px;
+      height: 46px;
+      font-size: 15px;
+      cursor: pointer;
+      transition: 0.15s;
+      font-weight: bold;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    button:hover, .download-link:hover {
+      transform: translateY(-2px);
+      opacity: 0.9;
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.6;
+      transform: none;
+    }
+
+    /* 버튼 색상 정의 */
+    .login-btn { background: #42a5f5; color: white; }
+    .signup-btn { background: #7e57c2; color: white; }
+    .logout-btn { background: #455a64; color: white; height: 38px; font-size: 13px; }
+    .add-btn { background: #42a5f5; color: white; }
+    .refresh-btn { background: #66bb6a; color: white; margin-bottom: 16px; }
+    .edit-btn { background: #ffca28; color: #333; }
+    .delete-btn { background: #ef5350; color: white; }
+    .save-btn { background: #7e57c2; color: white; }
+    .cancel-btn { background: #b0bec5; color: white; }
+    .ask-btn, .make-btn { background: #42a5f5; color: white; }
+    .clear-btn { background: #b0bec5; color: white; }
+    .download-link { background: #7e57c2; color: white; }
+
+    /* 메인 탑바 및 네비게이션 탭 */
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 22px;
+      padding: 14px 20px;
+      border-radius: 16px;
+      background: #f7f9fb;
+    }
+
+    .user-info { font-size: 14px; color: #555; word-break: break-all; }
+    
+    .nav-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 24px;
+      border-bottom: 2px solid #edf1f5;
+      padding-bottom: 8px;
+    }
+
+    .tab-btn {
+      background: transparent;
+      color: #666;
+      border-radius: 8px;
+      height: 40px;
+      font-weight: normal;
+    }
+
+    .tab-btn.active {
+      background: #1e88e5;
+      color: white;
+      font-weight: bold;
+    }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* 플랫폼 안내 배너 */
+    .info-banner {
+      padding: 14px;
+      margin-bottom: 20px;
+      border-radius: 14px;
+      background: #e8f5e9;
+      color: #2e7d32;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    /* 탭1: 연구노트 스타일 */
+    .form-box { display: grid; grid-template-columns: 1fr 2fr auto; gap: 10px; margin-bottom: 22px; }
+    .status { min-height: 24px; margin-bottom: 14px; color: #666; font-size: 14px; font-style: italic; }
+    .list { display: flex; flex-direction: column; gap: 12px; }
+    .item { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; padding: 16px; border-radius: 16px; background: #f7f9fb; border: 1px solid #edf1f5; }
+    .item-title { margin: 0 0 6px; font-size: 18px; font-weight: bold; color: #1e88e5; }
+    .item-content { margin: 0; color: #555; line-height: 1.5; word-break: break-all; white-space: pre-wrap; }
+    .item-date { margin-top: 8px; font-size: 12px; color: #999; }
+    .item-actions { display: flex; gap: 8px; }
+    .edit-box { display: grid; grid-template-columns: 1fr 2fr auto auto; gap: 8px; width: 100%; }
+    .empty { text-align: center; padding: 30px; color: #888; background: #f7f9fb; border-radius: 16px; }
+
+    /* 탭2 & 탭3 공통 레이아웃 */
+    .feature-box { display: flex; flex-direction: column; gap: 14px; }
+    .button-row { display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; margin-top: 4px; }
+    .label { font-weight: bold; margin-bottom: 6px; color: #424242; }
+    .result-display { min-height: 180px; padding: 18px; border-radius: 18px; background: #f7f9fb; border: 1px solid #edf1f5; line-height: 1.7; white-space: pre-wrap; word-break: break-word; }
+    .help-text { margin-top: 12px; font-size: 13px; color: #777; line-height: 1.6; }
+
+    /* 탭3: TTS 전용 */
+    .option-box { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 4px; }
+    audio { width: 100%; margin-top: 10px; }
+
+    .hidden { display: none; }
+
+    /* 반응형 레이아웃 처리 */
+    @media (max-width: 768px) {
+      .form-box, .item, .edit-box, .top-bar, .option-box { grid-template-columns: 1fr; flex-direction: column; align-items: stretch; }
+      .item-actions, .button-row { justify-content: stretch; }
+      .item-actions button, .button-row button, .button-row .download-link { width: 100%; }
+      .nav-tabs { flex-direction: column; gap: 4px; }
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Firebase 로그인 데이터 관리</h1>
-    <div class="subtitle">Firebase Authentication + Realtime Database 구조 시뮬레이션</div>
+    <h1>전기전자공학 AI 통합 연구 플랫폼</h1>
+    <div class="subtitle">Authentication + Realtime DB + OpenAI GPT & TTS Engine</div>
 
     <section id="authSection">
       <div class="auth-box">
-        <h2>로그인 / 회원가입</h2>
-        <input id="emailInput" type="email" placeholder="이메일" />
-        <input id="passwordInput" type="password" placeholder="비밀번호 6자리 이상" />
+        <h2>연구원 인증 로그인</h2>
+        <input id="emailInput" type="email" placeholder="이메일 계정 입력" />
+        <input id="passwordInput" type="password" placeholder="비밀번호 (6자리 이상)" />
         <button class="login-btn" id="loginBtn">로그인</button>
-        <button class="signup-btn" id="signupBtn">회원가입</button>
+        <button class="signup-btn" id="signupBtn">신규 연구원 등록 (회원가입)</button>
       </div>
-
       <div class="notice">
-        처음 사용하는 이메일은 회원가입을 먼저 누르세요.<br />
-        이미 가입한 이메일은 로그인 버튼을 누르면 됩니다.
+        <strong>💡 플랫폼 이용 안내</strong><br />
+        처음 방문하신 경우 이메일과 비밀번호 입력 후 '신규 연구원 등록'을 진행해 주세요. 본 플랫폼은 연구원 개별 암호화 보안 데이터 영역을 제공합니다.
       </div>
     </section>
 
     <section id="mainSection" class="hidden">
       <div class="top-bar">
         <div class="user-info">
-          로그인 계정: <strong id="userEmail"></strong>
+          접속 연구원 계정: <strong id="userEmail" style="color: #1e88e5;"></strong>
         </div>
-        <button class="logout-btn" id="logoutBtn">로그아웃</button>
+        <button class="logout-btn" id="logoutBtn">안전 로그아웃</button>
       </div>
 
-      <div class="form-box">
-        <input id="titleInput" type="text" placeholder="제목 입력" />
-        <input id="contentInput" type="text" placeholder="내용 입력" />
-        <button class="add-btn" id="addBtn">추가</button>
+      <div class="nav-tabs">
+        <button class="tab-btn active" onclick="switchTab('notebookTab')">📋 전자 연구 노트</button>
+        <button class="tab-btn" onclick="switchTab('chatbotTab')">🤖 AI 공학 설계 어시스턴트</button>
+        <button class="tab-btn" onclick="switchTab('ttsTab')">🔊 배리어프리 오디오 가이드 생성</button>
       </div>
 
-      <button class="refresh-btn" id="refreshBtn">데이터 새로고침</button>
-      <div id="status" class="status"></div>
-      <div id="dataList" class="list"></div>
+      <div id="notebookTab" class="tab-content active">
+        <div class="info-banner">
+          <strong>🔬 실험 및 설계 데이터 저장소</strong><br />
+          연구 과정에서 도출된 회로 파라미터, 실험값, 하드웨어 사양 등을 기록하고 클라우드에 실시간 동기화합니다.
+        </div>
+        <div class="form-box">
+          <input id="titleInput" type="text" placeholder="연구/실험 제목" />
+          <input id="contentInput" type="text" placeholder="실험 데이터 및 관찰 내용 기록" />
+          <button class="add-btn" id="addBtn">노트 추가</button>
+        </div>
+        <button class="refresh-btn" id="refreshBtn">데이터 실시간 재동기화</button>
+        <div id="status" class="status"></div>
+        <div id="dataList" class="list"></div>
+      </div>
+
+      <div id="chatbotTab" class="tab-content">
+        <div class="info-banner">
+          <strong>🧠 GPT-4o mini 기반 전기전자 지식 엔진</strong><br />
+          회로 해석 법칙(KVL/KCL), 전력 변환 모듈 설계 가이드, 소자 매칭 등 공학적 의문점을 AI에게 자문할 수 있습니다.
+        </div>
+        <div class="feature-box">
+          <div>
+            <div class="label">공학적 질의 입력</div>
+            <textarea id="questionInput" placeholder="질문을 상세히 입력하세요.&#10;예시: 5V 출력을 유도하기 위한 Buck Converter의 인덕터 및 커패시터 산정 공식을 알려줘."></textarea>
+          </div>
+          <div class="button-row">
+            <button class="clear-btn" id="clearChatBtn">콘솔 초기화</button>
+            <button class="ask-btn" id="askBtn">AI 분석 요청</button>
+          </div>
+          <div id="chatStatus" class="status"></div>
+          <div>
+            <div class="label">AI 분석 및 해석 리포트</div>
+            <div id="answerBox" class="result-display">어시스턴트의 답변 대기 중...</div>
+          </div>
+          <div class="help-text">
+            💡 단축키 가이드: 입력창에서 <strong>Ctrl + Enter</strong>를 누르면 즉시 분석 요청이 전송됩니다.
+          </div>
+        </div>
+      </div>
+
+      <div id="ttsTab" class="tab-content">
+        <div class="info-banner">
+          <strong>📢 공학 안전 매뉴얼 및 배리어프리 음성 솔루션</strong><br />
+          실험실 안전 수칙이나 장비 매뉴얼을 고성능 AI 음성(mp3)으로 변환합니다. 시각 장애인을 위한 공학 음성 교안 제작에 활용 가능합니다.
+        </div>
+        <div class="feature-box">
+          <div class="option-box">
+            <select id="modelSelect">
+              <option value="tts-1">tts-1 (고속 생성)</option>
+              <option value="tts-1-hd">tts-1-hd (고품질 연구용)</option>
+            </select>
+            <select id="voiceSelect">
+              <option value="alloy">alloy (중성적/신뢰감)</option>
+              <option value="echo">echo (부드러운 남성)</option>
+              <option value="fable">fable (나레이션 스타일)</option>
+              <option value="onyx">onyx (묵직한 남성)</option>
+              <option value="nova">nova (선명한 여성)</option>
+              <option value="shimmer">shimmer (지적인 여성)</option>
+            </select>
+            <input id="speedInput" type="number" min="0.25" max="4.0" step="0.05" value="1.0" placeholder="오디오 배속" />
+          </div>
+          <div>
+            <div class="label">변환 대상 문장 입력</div>
+            <textarea id="textInput" placeholder="음성 마스터링할 문장을 입력하세요.&#10;예시: 경고. 고전압 정류 회로 테스트 시 반드시 접지선 결선 상태를 확인하고, 절연 장갑을 착용하십시오."></textarea>
+          </div>
+          <div class="button-row">
+            <button class="clear-btn" id="clearTtsBtn">텍스트 비우기</button>
+            <button class="make-btn" id="makeBtn">AI 음성 신호 합성</button>
+          </div>
+          <div id="ttsStatus" class="status"></div>
+          <div id="resultBox" class="result-display hidden" style="min-height: auto;">
+            <div class="label">합성된 오디오 신호</div>
+            <audio id="audioPlayer" controls></audio>
+            <div class="button-row" style="margin-top: 12px;">
+              <a id="downloadLink" class="download-link" href="#" download="tts-audio.mp3">📥 연구 오디오 파일(.mp3) 다운로드</a>
+            </div>
+          </div>
+          <div class="help-text">
+            💡 재생 속도는 공학적 기준인 0.25배속부터 4.0배속까지 정밀 조정이 가능합니다.
+          </div>
+        </div>
+      </div>
     </section>
   </div>
 
-  <script>
-    // --- 고신뢰성 가상 파이어베이스 스토리지 인프라 엔진 초기화 ---
-    if (!localStorage.getItem('fb_auth_users')) {
-      localStorage.setItem('fb_auth_users', JSON.stringify({}));
-    }
-    if (!localStorage.getItem('fb_rtdb_data')) {
-      localStorage.setItem('fb_rtdb_data', JSON.stringify({}));
-    }
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+    import {
+      getAuth,
+      createUserWithEmailAndPassword,
+      signInWithEmailAndPassword,
+      signOut,
+      onAuthStateChanged
+    } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+    import {
+      getDatabase,
+      ref,
+      push,
+      set,
+      update,
+      remove,
+      onValue,
+      off
+    } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
 
+    // 네가 구성한 Firebase Config 시스템 그대로 연동
+    const firebaseConfig = {
+      apiKey: 'AIzaSyDO-v52Ehwphh5gW0WBzu9_DliMhOzy4Yo',
+      authDomain: 'kang-f4e85.firebaseapp.com',
+      databaseURL: 'https://kang-f4e85-default-rtdb.firebaseio.com',
+      projectId: 'kang-f4e85',
+      storageBucket: 'kang-f4e85.firebasestorage.app',
+      messagingSenderId: '107057126084',
+      appId: '1:107057126084:web:30f7bcb3f25dd2aa4a0791',
+      measurementId: 'G-DJ52YTYQZM'
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const database = getDatabase(app);
+
+    // 중계 GAS 서버 Endpoints 세팅 완료
+    const CHAT_GAS_URL = 'https://script.google.com/macros/s/AKfycbyTS-n6dNxhXGHxck-BL97z9l2PPrqZbl0tqjtPIP44MVFtyOiTwizk4jva8GMuV38p/exec';
+    const TTS_GAS_URL = 'https://script.google.com/macros/s/AKfycbxDNMIktE288seW2Mr5YgksYFeAP3SNl8YyQZFa1DuvD0N_8pjRLDmxkZBYyQ4WGPmt/exec';
+
+    // DOM 요소 바인딩
     const authSection = document.getElementById('authSection');
     const mainSection = document.getElementById('mainSection');
-
     const emailInput = document.getElementById('emailInput');
     const passwordInput = document.getElementById('passwordInput');
     const loginBtn = document.getElementById('loginBtn');
     const signupBtn = document.getElementById('signupBtn');
     const logoutBtn = document.getElementById('logoutBtn');
-
     const userEmail = document.getElementById('userEmail');
+
+    // 탭1 요소
     const titleInput = document.getElementById('titleInput');
     const contentInput = document.getElementById('contentInput');
     const addBtn = document.getElementById('addBtn');
@@ -314,261 +386,281 @@
     const dataList = document.getElementById('dataList');
     const statusBox = document.getElementById('status');
 
-    let currentUserEmail = null;
+    // 탭2 요소
+    const questionInput = document.getElementById('questionInput');
+    const answerBox = document.getElementById('answerBox');
+    const chatStatusBox = document.getElementById('chatStatus');
+    const askBtn = document.getElementById('askBtn');
+    const clearChatBtn = document.getElementById('clearChatBtn');
 
-    function setStatus(message, isError = false) {
-      statusBox.style.color = isError ? '#e53935' : '#2e7d32';
-      statusBox.textContent = message;
-    }
+    // 탭3 요소
+    const textInput = document.getElementById('textInput');
+    const modelSelect = document.getElementById('modelSelect');
+    const voiceSelect = document.getElementById('voiceSelect');
+    const speedInput = document.getElementById('speedInput');
+    const makeBtn = document.getElementById('makeBtn');
+    const clearTtsBtn = document.getElementById('clearTtsBtn');
+    const ttsStatusBox = document.getElementById('ttsStatus');
+    const resultBox = document.getElementById('resultBox');
+    const audioPlayer = document.getElementById('audioPlayer');
+    const downloadLink = document.getElementById('downloadLink');
 
-    function getStorageData(key) {
-      return JSON.parse(localStorage.getItem(key)) || {};
-    }
+    let currentUser = null;
+    let currentItemsRef = null;
 
-    function saveStorageData(key, data) {
-      localStorage.setItem(key, JSON.stringify(data));
-    }
+    // 탭 전환 코어 함수 구현
+    window.switchTab = function(tabId) {
+      document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      
+      document.getElementById(tabId).classList.add('active');
+      event.currentTarget.classList.add('active');
+    };
 
-    function getEmailAndPassword() {
+    // [인증 엔진] 유저 관리 및 제어 루틴
+    function getAccountInfo() {
       const email = emailInput.value.trim();
       const password = passwordInput.value.trim();
-
-      if (!email || !password) {
-        alert('이메일과 비밀번호를 모두 입력해주세요.');
-        return null;
-      }
-
-      if (password.length < 6) {
-        alert('비밀번호는 6자리 이상이어야 합니다.');
-        return null;
-      }
-
+      if (!email || !password) { alert('계정 아이디와 보안 패스워드를 모두 기입하세요.'); return null; }
+      if (password.length < 6) { alert('보안을 위해 패스워드는 6자리 이상 규격이어야 합니다.'); return null; }
       return { email, password };
     }
 
-    // [회원가입 기능]
-    signupBtn.addEventListener('click', () => {
-      const account = getEmailAndPassword();
+    signupBtn.addEventListener('click', async () => {
+      const account = getAccountInfo();
       if (!account) return;
-
-      const users = getStorageData('fb_auth_users');
-      if (users[account.email]) {
-        alert('이미 가입된 이메일입니다.');
-        return;
-      }
-
-      // 유저 데이터 계정 생성 및 할당
-      users[account.email] = { password: account.password };
-      saveStorageData('fb_auth_users', users);
-      
-      alert('회원가입이 완료되었습니다. 로그인 버튼을 눌러주세요.');
+      try {
+        await createUserWithEmailAndPassword(auth, account.email, account.password);
+        alert('신규 공학 연구원 등록이 성공적으로 승인되었습니다.');
+      } catch (error) { alert(getKoreanErrorMessage(error.code)); }
     });
 
-    // [로그인 기능]
-    loginBtn.addEventListener('click', () => {
-      const account = getEmailAndPassword();
+    loginBtn.addEventListener('click', async () => {
+      const account = getAccountInfo();
       if (!account) return;
+      try {
+        await signInWithEmailAndPassword(auth, account.email, account.password);
+      } catch (error) { alert(getKoreanErrorMessage(error.code)); }
+    });
 
-      const users = getStorageData('fb_auth_users');
-      if (users[account.email] && users[account.email].password === account.password) {
-        currentUserEmail = account.email;
-        showMainPage(account.email);
-        startRealtimeDataListener(account.email);
+    logoutBtn.addEventListener('click', async () => {
+      try { await signOut(auth); } catch (error) { alert('인증 해제(로그아웃) 도중 통신 장애가 발생했습니다.'); }
+    });
+
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        currentUser = user;
+        authSection.classList.add('hidden');
+        mainSection.classList.remove('hidden');
+        userEmail.textContent = user.email;
+        emailInput.value = ''; passwordInput.value = '';
+        startRealtimeDataListener(user.uid);
       } else {
-        alert('이메일 또는 비밀번호가 올바르지 않습니다.');
+        currentUser = null;
+        authSection.classList.remove('hidden');
+        mainSection.classList.add('hidden');
+        userEmail.textContent = ''; dataList.innerHTML = '';
+        stopRealtimeDataListener();
       }
     });
 
-    // [로그아웃 기능]
-    logoutBtn.addEventListener('click', () => {
-      currentUserEmail = null;
-      showAuthPage();
-    });
-
-    function showMainPage(email) {
-      authSection.classList.add('hidden');
-      mainSection.classList.remove('hidden');
-      userEmail.textContent = email;
-      emailInput.value = '';
-      passwordInput.value = '';
+    // [데이터베이스 엔진] 실시간 노트 데이터 동기화 루틴
+    function startRealtimeDataListener(uid) {
+      stopRealtimeDataListener();
+      statusBox.textContent = '클라우드 데이터베이스 연결 중...';
+      currentItemsRef = ref(database, `users/${uid}/items`);
+      onValue(currentItemsRef, (snapshot) => {
+        renderData(snapshot.val());
+        statusBox.textContent = '데이터 동기화 완료 (보안 안전 상태)';
+      }, (error) => {
+        console.error(error);
+        statusBox.textContent = '보안 규칙 위배 또는 네트워크 통신 오류가 검출되었습니다.';
+      });
     }
 
-    function showAuthPage() {
-      authSection.classList.remove('hidden');
-      mainSection.classList.add('hidden');
-      userEmail.textContent = '';
-      dataList.innerHTML = '';
+    function stopRealtimeDataListener() {
+      if (currentItemsRef) { off(currentItemsRef); currentItemsRef = null; }
     }
 
-    // [데이터 동기화 및 조회]
-    function startRealtimeDataListener(email) {
-      setStatus('데이터를 불러오는 중입니다...');
-      setTimeout(() => {
-        const db = getStorageData('fb_rtdb_data');
-        const userLogs = db[email] || {};
-        renderData(userLogs);
-        setStatus('데이터가 실시간으로 동기화되었습니다.');
-      }, 300);
-    }
-
-    refreshBtn.addEventListener('click', () => {
-      if (currentUserEmail) {
-        startRealtimeDataListener(currentUserEmail);
-      }
-    });
-
-    // [데이터 추가 - Create]
-    addBtn.addEventListener('click', addData);
-
-    function addData() {
-      if (!currentUserEmail) {
-        alert('로그인이 필요합니다.');
-        return;
-      }
-
+    addBtn.addEventListener('click', async () => {
+      if (!currentUser) return;
       const title = titleInput.value.trim();
       const content = contentInput.value.trim();
+      if (!title || !content) { alert('연구 타이틀과 데이터 본문을 모두 작성해 주세요.'); return; }
+      try {
+        const itemsRef = ref(database, `users/${currentUser.uid}/items`);
+        await set(push(itemsRef), {
+          title, content,
+          createdAt: new Date().toLocaleString('ko-KR'),
+          updatedAt: ''
+        });
+        titleInput.value = ''; contentInput.value = '';
+      } catch (error) { alert('노트 클라우드 원격 전송에 실패했습니다.'); }
+    });
 
-      if (!title || !content) {
-        alert('제목과 내용을 모두 입력해주세요.');
-        return;
-      }
+    refreshBtn.addEventListener('click', () => { if (currentUser) startRealtimeDataListener(currentUser.uid); });
 
-      const db = getStorageData('fb_rtdb_data');
-      if (!db[currentUserEmail]) db[currentUserEmail] = {};
-
-      // 고유 아이디 키값 난수 생성기
-      const newId = 'id_' + Math.random().toString(36).substr(2, 9);
-      db[currentUserEmail][newId] = {
-        title: title,
-        content: content,
-        createdAt: new Date().toLocaleString('ko-KR'),
-        updatedAt: ''
-      };
-
-      saveStorageData('fb_rtdb_data', db);
-      titleInput.value = '';
-      contentInput.value = '';
-      startRealtimeDataListener(currentUserEmail);
-    }
-
-    // [데이터 삭제 - Delete]
-    window.deleteData = function(id) {
-      if (!currentUserEmail) return;
-
-      const isConfirmed = confirm('정말 삭제하시겠습니까?');
-      if (!isConfirmed) return;
-
-      const db = getStorageData('fb_rtdb_data');
-      if (db[currentUserEmail] && db[currentUserEmail][id]) {
-        delete db[currentUserEmail][id];
-        saveStorageData('fb_rtdb_data', db);
-        startRealtimeDataListener(currentUserEmail);
-      }
+    window.deleteData = async function(id) {
+      if (!currentUser || !confirm('기록된 공학 실험 데이터를 영구 삭제하시겠습니까?')) return;
+      try { await remove(ref(database, `users/${currentUser.uid}/items/${id}`)); } 
+      catch (error) { alert('데이터 레코드 노드 제거 실패'); }
     };
 
-    // [데이터 수정 - Update]
-    window.updateData = function(id) {
-      if (!currentUserEmail) return;
-
+    window.updateData = async function(id) {
       const editTitle = document.getElementById(`edit-title-${id}`).value.trim();
       const editContent = document.getElementById(`edit-content-${id}`).value.trim();
-
-      if (!editTitle || !editContent) {
-        alert('수정할 제목과 내용을 모두 입력해주세요.');
-        return;
-      }
-
-      const db = getStorageData('fb_rtdb_data');
-      if (db[currentUserEmail] && db[currentUserEmail][id]) {
-        db[currentUserEmail][id].title = editTitle;
-        db[currentUserEmail][id].content = editContent;
-        db[currentUserEmail][id].updatedAt = new Date().toLocaleString('ko-KR');
-        
-        saveStorageData('fb_rtdb_data', db);
-        startRealtimeDataListener(currentUserEmail);
-      }
+      if (!editTitle || !editContent) { alert('공란이 존재하면 업데이트를 진행할 수 없습니다.'); return; }
+      try {
+        await update(ref(database, `users/${currentUser.uid}/items/${id}`), {
+          title: editTitle, content: editContent,
+          updatedAt: new Date().toLocaleString('ko-KR')
+        });
+        startRealtimeDataListener(currentUser.uid);
+      } catch (error) { alert('노트 갱신 연산 실패'); }
     };
 
-    // UI에 데이터 출력 렌더러
     function renderData(data) {
       dataList.innerHTML = '';
-
-      if (!data || Object.keys(data).length === 0) {
-        dataList.innerHTML = '<div class="empty">아직 저장된 데이터가 없습니다.</div>';
-        return;
-      }
-
-      const entries = Object.entries(data).reverse();
-
-      entries.forEach(([id, item]) => {
+      if (!data) { dataList.innerHTML = '<div class="empty">저장된 연구 로그가 존재하지 않습니다. 첫 노트를 기록해 보세요!</div>'; return; }
+      Object.entries(data).reverse().forEach(([id, item]) => {
         const div = document.createElement('div');
-        div.className = 'item';
-        div.id = `item-${id}`;
-
+        div.className = 'item'; div.id = `item-${id}`;
         div.innerHTML = `
           <div>
             <p class="item-title">${escapeHTML(item.title || '')}</p>
             <p class="item-content">${escapeHTML(item.content || '')}</p>
-            <div class="item-date">
-              생성: ${item.createdAt || '-'}
-              ${item.updatedAt ? ` / 수정: ${item.updatedAt}` : ''}
-            </div>
+            <div class="item-date">최초 기록: ${item.createdAt || '-'} ${item.updatedAt ? ` / 마스터 수정: ${item.updatedAt}` : ''}</div>
           </div>
           <div class="item-actions">
-            <button class="edit-btn" onclick="showEditForm('${id}')">수정</button>
+            <button class="edit-btn" onclick="showEditForm('${id}', '${escapeForAttribute(item.title || '')}', '${escapeForAttribute(item.content || '')}')">수정</button>
             <button class="delete-btn" onclick="deleteData('${id}')">삭제</button>
           </div>
         `;
-
         dataList.appendChild(div);
       });
     }
 
-    // 수정 창 레이아웃 출력 토글 함수
-    window.showEditForm = function(id) {
-      const db = getStorageData('fb_rtdb_data');
-      if(!db[currentUserEmail] || !db[currentUserEmail][id]) return;
-      
-      const item = db[currentUserEmail][id];
-      const itemBox = document.getElementById(`item-${id}`);
-
-      itemBox.innerHTML = `
+    window.showEditForm = function(id, title, content) {
+      document.getElementById(`item-${id}`).innerHTML = `
         <div class="edit-box">
-          <input id="edit-title-${id}" type="text" value="${escapeHTML(item.title)}" />
-          <input id="edit-content-${id}" type="text" value="${escapeHTML(item.content)}" />
+          <input id="edit-title-${id}" type="text" value="${title}" />
+          <input id="edit-content-${id}" type="text" value="${content}" />
           <button class="save-btn" onclick="updateData('${id}')">저장</button>
-          <button class="cancel-btn" onclick="abortEdit()">취소</button>
+          <button class="cancel-btn" onclick="switchTab('notebookTab')">취소</button>
         </div>
       `;
     };
 
-    window.abortEdit = function() {
-      if(currentUserEmail) startRealtimeDataListener(currentUserEmail);
-    };
+    // [AI 대화형 연동 엔진] OpenAI Chat 연동
+    askBtn.addEventListener('click', askChatGPT);
+    clearChatBtn.addEventListener('click', () => { questionInput.value = ''; answerBox.textContent = '어시스턴트의 답변 대기 중...'; chatStatusBox.textContent = ''; });
 
-    function escapeHTML(text) {
-      return String(text)
-        .replaceAll('&', '&amp;')
-        .replaceAll('<', '&lt;')
-        .replaceAll('>', '&gt;')
-        .replaceAll('"', '&quot;')
-        .replaceAll("'", '&#039;');
+    async function askChatGPT() {
+      const question = questionInput.value.trim();
+      if (!question) { alert('공학적 질문 시나리오를 설계 후 전송하세요.'); return; }
+      try {
+        askBtn.disabled = true; askBtn.textContent = '연산 중...';
+        answerBox.textContent = '인공지능 코어에서 전기전자 지식을 추론하고 있습니다... 잠시만 기다려 주세요.';
+        chatStatusBox.textContent = 'GAS 게이트웨이를 경유하여 OpenAI 클라우드 동기화 중...';
+
+        const response = await fetch(CHAT_GAS_URL, {
+          method: 'POST',
+          body: JSON.stringify({ question: question })
+        });
+        const data = await response.json();
+        if (data.error) throw new Error(data.error);
+
+        answerBox.textContent = data.answer || '리포트를 도출하지 못했습니다.';
+        chatStatusBox.textContent = '추론 연산 성공 및 연동 완료';
+      } catch (error) {
+        console.error(error);
+        answerBox.textContent = '지식 엔진 분석 연산 실패:\n' + error.message;
+        chatStatusBox.textContent = '런타임 에러 감지됨';
+      } finally {
+        askBtn.disabled = false; askBtn.textContent = 'AI 분석 요청';
+      }
     }
 
-    // 엔터 키 바인딩 단축키 제어
+    // [AI TTS 오디오 엔진] OpenAI Voice 신호 생성 처리
+    makeBtn.addEventListener('click', makeSpeech);
+    clearTtsBtn.addEventListener('click', () => { textInput.value = ''; ttsStatusBox.textContent = ''; resultBox.classList.add('hidden'); audioPlayer.removeAttribute('src'); });
+
+    async function makeSpeech() {
+      const text = textInput.value.trim();
+      const model = modelSelect.value;
+      const voice = voiceSelect.value;
+      const speed = Number(speedInput.value || 1.0);
+
+      if (!text) { alert('음성 합성 처리를 진행할 텍스트 스크립트가 비어있습니다.'); return; }
+      if (speed < 0.25 || speed > 4.0) { alert('속도 조절 가이드는 0.25에서 4.0 정밀 도메인 범위 내여야 합니다.'); return; }
+
+      try {
+        makeBtn.disabled = true; makeBtn.textContent = '합성 중...';
+        resultBox.classList.add('hidden');
+        ttsStatusBox.textContent = 'AI 파형 생성 엔진에 음성 시뮬레이션 요청을 하이드레이션 중입니다.';
+
+        const response = await fetch(TTS_GAS_URL, {
+          method: 'POST',
+          body: JSON.stringify({ type: 'tts', text: text, model: model, voice: voice, speed: speed })
+        });
+        const data = await response.json();
+        if (data.error) throw new Error(data.error);
+        if (!data.audioBase64) throw new Error('바이너리 인코딩 스트림 반환 실패.');
+
+        const audioUrl = base64ToAudioUrl(data.audioBase64, 'audio/mpeg');
+        audioPlayer.src = audioUrl;
+        downloadLink.href = audioUrl;
+        downloadLink.download = `EEG-${new Date().toISOString().slice(0,10)}-Audio.mp3`;
+        resultBox.classList.remove('hidden');
+        ttsStatusBox.textContent = '오디오 마스터 트랙 합성 인코딩 성공';
+      } catch (error) {
+        console.error(error);
+        ttsStatusBox.textContent = '음성 소스 생성 실패';
+        alert('TTS 마스터링 실패:\n' + error.message);
+      } finally {
+        makeBtn.disabled = false; makeBtn.textContent = 'AI 음성 신호 합성';
+      }
+    }
+
+    function base64ToAudioUrl(base64, mimeType) {
+      const byteCharacters = atob(base64);
+      const byteArrays = [];
+      for (let offset = 0; offset < byteCharacters.length; offset += 512) {
+        const slice = byteCharacters.slice(offset, offset + 512);
+        const byteNumbers = new Array(slice.length);
+        for (let i = 0; i < slice.length; i++) { byteNumbers[i] = slice.charCodeAt(i); }
+        byteArrays.push(new Uint8Array(byteNumbers));
+      }
+      return URL.createObjectURL(new Blob(byteArrays, { type: mimeType }));
+    }
+
+    // 보안 이스케이프 및 에러 핸들러 유틸리티
+    function escapeHTML(text) {
+      return String(text).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#039;');
+    }
+    function escapeForAttribute(text) { return escapeHTML(text).replaceAll('`', '&#096;'); }
+
+    function getKoreanErrorMessage(code) {
+      switch (code) {
+        case 'auth/email-already-in-use': return '시스템에 기등록된 이메일 연구자 계정입니다.';
+        case 'auth/invalid-email': return '이메일 프로토콜 계정 포맷이 적합하지 않습니다.';
+        case 'auth/weak-password': return '보안 강도가 약합니다. 패스워드를 재설계하세요.';
+        case 'auth/user-not-found': return '등록되지 않은 계정 정보입니다.';
+        case 'auth/wrong-password': return '인증 보안 패스워드가 정확하지 않습니다.';
+        case 'auth/invalid-credential': return '자격 증명 정보가 잘못되었거나 만료되었습니다.';
+        case 'auth/network-request-failed': return '서버 네트워크 링크 상태를 확인하십시오.';
+        default: return `예외 에러 핸들러 트랙 검출: ${code}`;
+      }
+    }
+
+    // 전역 단축키 관제 모듈
     document.addEventListener('keydown', function(event) {
       if (event.key !== 'Enter') return;
-
       const activeId = document.activeElement.id;
-
-      if (activeId === 'emailInput' || activeId === 'passwordInput') {
-        loginBtn.click();
-      }
-
-      if (activeId === 'titleInput' || activeId === 'contentInput') {
-        addBtn.click();
-      }
+      if (activeId === 'emailInput' || activeId === 'passwordInput') loginBtn.click();
+      if (activeId === 'titleInput' || activeId === 'contentInput') addBtn.click();
+      if (event.ctrlKey && activeId === 'questionInput') askChatGPT();
+      if (event.ctrlKey && activeId === 'textInput') makeSpeech();
     });
   </script>
 </body>
