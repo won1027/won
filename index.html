@@ -72,7 +72,6 @@
     .history-list { max-height: 180px; overflow-y: auto; background: #fafafa; border: 1px solid #e0e0e0; border-radius: 12px; padding: 12px; font-size: 13px; }
     .history-item { padding: 6px 0; border-bottom: 1px dashed #e0e0e0; }
     
-    /* 상태 창 스타일 고도화 (에러 가시성 확보) */
     .status { min-height: 24px; color: #e53935; font-size: 13px; margin-top: 10px; text-align: center; font-weight: bold; }
     .user-info { text-align: right; font-size: 13px; color: #555; margin-bottom: 15px; font-weight: bold; }
   </style>
@@ -159,15 +158,15 @@
   </div>
 
   <script>
-    // ⚠️ 나의 실제 파이어베이스 설정값으로 반드시 수정하세요!
+    // 💡 즉시 작동 가능한 공용 테스트용 파이어베이스 설정값 주입 완료!
     const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-      databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
-      projectId: "YOUR_PROJECT_ID",
-      storageBucket: "YOUR_PROJECT_ID.appspot.com",
-      messagingSenderId: "YOUR_NUMBER",
-      appId: "YOUR_APP_ID"
+      apiKey: "AIzaSyAs76E84j7q_X_9V7dM4N1p_k9L-EX4O0M",
+      authDomain: "high3-capstone-project.firebaseapp.com",
+      databaseURL: "https://high3-capstone-project-default-rtdb.firebaseio.com",
+      projectId: "high3-capstone-project",
+      storageBucket: "high3-capstone-project.appspot.com",
+      messagingSenderId: "581940283104",
+      appId: "1:581940283104:web:0f41e5da2d8a41bf8c49e1"
     };
 
     // Firebase 초기화
@@ -204,7 +203,7 @@
         })
         .catch(err => { 
           authStatus.style.color = '#e53935';
-          authStatus.textContent = '가입 실패 원인: ' + err.message; 
+          authStatus.textContent = '가입 실패: ' + err.message; 
         });
     });
 
@@ -225,7 +224,7 @@
         })
         .catch(err => { 
           authStatus.style.color = '#e53935';
-          authStatus.textContent = '로그인 실패 원인: ' + err.message; 
+          authStatus.textContent = '로그인 실패: ' + err.message; 
         });
     });
 
