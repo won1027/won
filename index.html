@@ -3,356 +3,573 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>전기전자공학 전력 모니터링 시스템 (인증 보안형)</title>
+  <title>Firebase 로그인 데이터 관리</title>
   <style>
-    * { box-sizing: border-box; }
-    
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
       min-height: 100vh;
-      background: linear-gradient(135deg, #e0f2f1, #e8eaf6);
+      background: linear-gradient(135deg, #e3f2fd, #fce4ec);
       font-family: Arial, sans-serif;
       color: #333;
+    }
+
+    .container {
+      width: min(900px, 92%);
+      margin: 40px auto;
+      background: #ffffff;
+      border-radius: 24px;
+      padding: 28px;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.16);
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      text-align: center;
+      font-size: 28px;
+    }
+
+    h2 {
+      margin-top: 0;
+      font-size: 22px;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #777;
+      margin-bottom: 28px;
+      font-size: 14px;
+    }
+
+    .auth-box {
+      max-width: 420px;
+      margin: 0 auto;
       display: flex;
       flex-direction: column;
+      gap: 12px;
+    }
+
+    input {
+      height: 46px;
+      padding: 0 14px;
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      font-size: 15px;
+      outline: none;
+    }
+
+    input:focus {
+      border-color: #42a5f5;
+      box-shadow: 0 0 0 3px rgba(66, 165, 245, 0.15);
+    }
+
+    button {
+      border: none;
+      border-radius: 12px;
+      padding: 0 16px;
+      height: 46px;
+      font-size: 15px;
+      cursor: pointer;
+      transition: 0.15s;
+      font-weight: bold;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      opacity: 0.9;
+    }
+
+    .login-btn {
+      background: #42a5f5;
+      color: white;
+    }
+
+    .signup-btn {
+      background: #7e57c2;
+      color: white;
+    }
+
+    .logout-btn {
+      background: #455a64;
+      color: white;
+    }
+
+    .add-btn {
+      background: #42a5f5;
+      color: white;
+    }
+
+    .refresh-btn {
+      background: #66bb6a;
+      color: white;
+      margin-bottom: 16px;
+    }
+
+    .edit-btn {
+      background: #ffca28;
+      color: #333;
+    }
+
+    .delete-btn {
+      background: #ef5350;
+      color: white;
+    }
+
+    .save-btn {
+      background: #7e57c2;
+      color: white;
+    }
+
+    .cancel-btn {
+      background: #b0bec5;
+      color: white;
+    }
+
+    .form-box {
+      display: grid;
+      grid-template-columns: 1fr 2fr auto;
+      gap: 10px;
+      margin-bottom: 22px;
+    }
+
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
       align-items: center;
-      justify-content: center;
-      padding: 20px 0;
+      gap: 12px;
+      margin-bottom: 22px;
+      padding: 14px;
+      border-radius: 16px;
+      background: #f7f9fb;
     }
 
-    /* 로그인 상자 */
-    .auth-box { 
-      display: block; 
-      width: min(420px, 92%); 
-      margin: 0 auto; 
-      padding: 30px 24px; 
-      background: #ffffff; 
-      border-radius: 20px; 
-      border: 1px solid #c5cae9; 
-      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12);
-    }
-    
-    /* 대시보드 상자 (처음엔 숨김) */
-    .container {
-      display: none; 
-      width: min(900px, 92%); 
-      margin: 0 auto;
-      background: #ffffff; 
-      border-radius: 24px; 
-      padding: 28px;
-      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+    .user-info {
+      font-size: 14px;
+      color: #555;
+      word-break: break-all;
     }
 
-    h1 { margin: 0 0 12px; text-align: center; font-size: 24px; color: #1a237e; }
-    .subtitle { text-align: center; color: #5c6bc0; margin-bottom: 24px; font-size: 14px; font-weight: bold; }
-    .info { padding: 14px; margin-bottom: 20px; border-radius: 14px; background: #e8eaf6; color: #283593; font-size: 14px; line-height: 1.6; }
-    
-    .auth-buttons { display: flex; gap: 10px; margin-top: 20px; }
-    .auth-btn-sub { background: #5c6bc0; color: white; width: 100%; }
+    .status {
+      min-height: 24px;
+      margin-bottom: 14px;
+      color: #e53935; /* 오류 가시성을 위해 색상 강조 */
+      font-size: 14px;
+      font-weight: bold;
+      text-align: center;
+    }
 
-    .chat-box { display: flex; flex-direction: column; gap: 14px; }
-    .input-group { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-    @media (max-width: 600px) { .input-group { grid-template-columns: 1fr; } }
-    .field { display: flex; flex-direction: column; margin-bottom: 12px; }
-    .label { font-weight: bold; margin-bottom: 6px; color: #3f51b5; font-size: 14px; }
-    
-    input { width: 100%; padding: 12px; border: 1px solid #c5cae9; border-radius: 12px; font-size: 15px; outline: none; }
-    input:focus { border-color: #3f51b5; box-shadow: 0 0 0 3px rgba(63, 81, 181, 0.15); }
-    
-    .button-row { display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; margin-top: 10px; }
-    button { border: none; border-radius: 12px; padding: 0 20px; height: 46px; font-size: 14px; cursor: pointer; transition: 0.15s; font-weight: bold; }
-    button:hover { transform: translateY(-2px); opacity: 0.9; }
-    
-    .ask-btn { background: #3f51b5; color: white; }
-    .clear-btn { background: #b0bec5; color: white; }
-    .logout-btn { background: #e53935; color: white; }
-    
-    .answer-box { min-height: 120px; padding: 16px; border-radius: 18px; background: #f5f5f5; border: 1px solid #e0e0e0; line-height: 1.7; }
-    .history-zone { margin-top: 20px; }
-    .history-list { max-height: 180px; overflow-y: auto; background: #fafafa; border: 1px solid #e0e0e0; border-radius: 12px; padding: 12px; font-size: 13px; }
-    .history-item { padding: 6px 0; border-bottom: 1px dashed #e0e0e0; }
-    
-    .status { min-height: 24px; color: #e53935; font-size: 13px; margin-top: 10px; text-align: center; font-weight: bold; }
-    .user-info { text-align: right; font-size: 13px; color: #555; margin-bottom: 15px; font-weight: bold; }
+    .list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .item {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: center;
+      padding: 16px;
+      border-radius: 16px;
+      background: #f7f9fb;
+      border: 1px solid #edf1f5;
+    }
+
+    .item-title {
+      margin: 0 0 6px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    .item-content {
+      margin: 0;
+      color: #555;
+      line-height: 1.5;
+      word-break: break-all;
+    }
+
+    .item-date {
+      margin-top: 8px;
+      font-size: 12px;
+      color: #999;
+    }
+
+    .item-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .edit-box {
+      display: grid;
+      grid-template-columns: 1fr 2fr auto auto;
+      gap: 8px;
+      width: 100%;
+    }
+
+    .empty {
+      text-align: center;
+      padding: 30px;
+      color: #888;
+      background: #f7f9fb;
+      border-radius: 16px;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .notice {
+      max-width: 620px;
+      margin: 20px auto 0;
+      padding: 14px;
+      border-radius: 14px;
+      background: #fff8e1;
+      color: #6d4c41;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    @media (max-width: 700px) {
+      .form-box,
+      .item,
+      .edit-box,
+      .top-bar {
+        grid-template-columns: 1fr;
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .item-actions {
+        justify-content: flex-end;
+      }
+    }
   </style>
 </head>
 <body>
+  <div class="container">
+    <h1>Firebase 로그인 데이터 관리</h1>
+    <div class="subtitle">Firebase Authentication + Realtime Database 구조 시뮬레이션</div>
 
-  <div id="authSection" class="auth-box">
-    <h1>Smart 전력 시스템 로그인</h1>
-    <div style="text-align: center; font-size:12px; color:#2e7d32; margin-bottom:20px; font-weight: bold;">로컬 독립 보안 데이터 시스템 고도화</div>
-    
-    <div class="field">
-      <div class="label">이메일 주소</div>
-      <input type="email" id="authEmail" placeholder="example@email.com" />
-    </div>
-    <div class="field">
-      <div class="label">비밀번호 (6자리 이상)</div>
-      <input type="password" id="authPassword" placeholder="비밀번호 입력" />
-    </div>
-    
-    <div class="auth-buttons">
-      <button class="ask-btn" id="loginBtn" style="flex: 1;">로그인</button>
-      <button class="auth-btn-sub" id="signUpBtn" style="flex: 1;">회원가입</button>
-    </div>
-    <div id="authStatus" class="status"></div>
-  </div>
+    <section id="authSection">
+      <div class="auth-box">
+        <h2>로그인 / 회원가입</h2>
+        <input id="emailInput" type="email" placeholder="이메일" />
+        <input id="passwordInput" type="password" placeholder="비밀번호 6자리 이상" />
+        <button class="login-btn" id="loginBtn">로그인</button>
+        <button class="signup-btn" id="signupBtn">회원가입</button>
+      </div>
 
-  <div id="dashboardSection" class="container">
-    <div class="user-info">
-      접속 계정: <span id="userDisplay" style="color: #3f51b5;"></span> 
-      <button class="logout-btn" id="logoutBtn" style="height: 30px; padding: 0 10px; font-size: 12px; margin-left: 10px; border-radius: 6px;">로그아웃</button>
-    </div>
-    
-    <h1>Smart 전력 배전 및 탄소 모니터링</h1>
-    <div class="subtitle">보안 인증 및 유저 격리형 실시간 전력 배전 시스템</div>
+      <div class="notice">
+        처음 사용하는 이메일은 회원가입을 먼저 누르세요.<br />
+        이미 가입한 이메일은 로그인 버튼을 누르면 됩니다.
+      </div>
+    </section>
 
-    <div class="info">
-      <strong>[보안 및 전기전자 융합 프로젝트]</strong> 브라우저 고유 샌드박스 데이터베이스 구조를 채택하여, 로그인된 유저의 고유 세션 식별자를 기반으로 사용자간 데이터를 완벽하게 격리하고 전력 소모량을 독립 추적하도록 설계되었습니다.
-    </div>
-
-    <div class="chat-box">
-      <div class="input-group">
-        <div class="field">
-          <div class="label">기기/소자 명칭</div>
-          <input type="text" id="deviceName" placeholder="예: 거실 에어컨, 실험회로A" />
+    <section id="mainSection" class="hidden">
+      <div class="top-bar">
+        <div class="user-info">
+          로그인 계정: <strong id="userEmail"></strong>
         </div>
-        <div class="field">
-          <div class="label">동작 전압 (V)</div>
-          <input type="number" id="voltage" value="220" />
-        </div>
+        <button class="logout-btn" id="logoutBtn">로그아웃</button>
       </div>
 
-      <div class="input-group">
-        <div class="field">
-          <div class="label">측정 전류 (A)</div>
-          <input type="number" id="current" step="0.1" value="1.5" />
-        </div>
-        <div class="field">
-          <div class="label">사용 시간 (Hour)</div>
-          <input type="number" id="hours" value="1" />
-        </div>
+      <div class="form-box">
+        <input id="titleInput" type="text" placeholder="제목 입력" />
+        <input id="contentInput" type="text" placeholder="내용 입력" />
+        <button class="add-btn" id="addBtn">추가</button>
       </div>
 
-      <div class="button-row">
-        <button class="clear-btn" id="clearBtn">나의 기록 초기화</button>
-        <button class="ask-btn" id="saveBtn">전력 데이터 전송</button>
-      </div>
-
-      <div id="mainStatus" class="status" style="color: #2e7d32;"></div>
-
-      <div>
-        <div class="label">실시간 계산 결과 (전기공학 공식 적용)</div>
-        <div id="resultBox" class="answer-box">데이터를 입력하고 전력 데이터 전송 버튼을 누르세요.</div>
-      </div>
-
-      <div class="history-zone">
-        <div class="label">나의 실시간 누적 전송 로그 (보안 격리 공간)</div>
-        <div id="historyList" class="history-list">저장된 기록이 없습니다.</div>
-      </div>
-    </div>
+      <button class="refresh-btn" id="refreshBtn">데이터 새로고침</button>
+      <div id="status" class="status"></div>
+      <div id="dataList" class="list"></div>
+    </section>
   </div>
 
   <script>
-    // --- 로컬 데이터베이스 및 엔진 시스템 초기화 ---
-    if (!localStorage.getItem('registered_users')) {
-      localStorage.setItem('registered_users', JSON.stringify({}));
+    // --- 고신뢰성 가상 파이어베이스 스토리지 인프라 엔진 초기화 ---
+    if (!localStorage.getItem('fb_auth_users')) {
+      localStorage.setItem('fb_auth_users', JSON.stringify({}));
     }
-    if (!localStorage.getItem('user_sessions')) {
-      localStorage.setItem('user_sessions', JSON.stringify({}));
+    if (!localStorage.getItem('fb_rtdb_data')) {
+      localStorage.setItem('fb_rtdb_data', JSON.stringify({}));
     }
 
-    // DOM 요소 연결
     const authSection = document.getElementById('authSection');
-    const dashboardSection = document.getElementById('dashboardSection');
-    const authEmail = document.getElementById('authEmail');
-    const authPassword = document.getElementById('authPassword');
-    const authStatus = document.getElementById('authStatus');
-    const mainStatus = document.getElementById('mainStatus');
-    const userDisplay = document.getElementById('userDisplay');
-    
-    let loggedInUserEmail = null;
+    const mainSection = document.getElementById('mainSection');
 
-    // 회원가입 로직
-    document.getElementById('signUpBtn').addEventListener('click', () => {
-      const email = authEmail.value.trim();
-      const password = authPassword.value;
-      
-      if(!email || !password) { alert('이메일과 비밀번호를 입력하세요.'); return; }
-      if(password.length < 6) { 
-        authStatus.style.color = '#e53935';
-        authStatus.textContent = '비밀번호는 6자리 이상이어야 합니다.'; 
-        return; 
-      }
-      
-      const users = JSON.stringify_parse('registered_users');
-      if (users[email]) {
-        authStatus.style.color = '#e53935';
-        authStatus.textContent = '이미 가입된 이메일 주소입니다.';
-        return;
-      }
-      
-      // 사용자 등록 처리
-      users[email] = { password: password, logs: [] };
-      localStorage.setItem('registered_users', JSON.stringify(users));
-      
-      authStatus.style.color = '#2e7d32';
-      authStatus.textContent = '회원가입 완료! 로그인을 시도하세요.';
-    });
+    const emailInput = document.getElementById('emailInput');
+    const passwordInput = document.getElementById('passwordInput');
+    const loginBtn = document.getElementById('loginBtn');
+    const signupBtn = document.getElementById('signupBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
 
-    // 로그인 로직
-    document.getElementById('loginBtn').addEventListener('click', () => {
-      const email = authEmail.value.trim();
-      const password = authPassword.value;
-      
-      if(!email || !password) { alert('이메일과 비밀번호를 입력하세요.'); return; }
-      
-      const users = JSON.stringify_parse('registered_users');
-      
-      if (users[email] && users[email].password === password) {
-        authStatus.style.color = '#2e7d32';
-        authStatus.textContent = '로그인 성공!';
-        
-        // 실시간 접속 이력(Access Log) 로깅 구현
-        logUserAccess(email, "사용자 로그인 인증 접속");
-        
-        // 로그인 상태로 전환
-        executeLoginState(email);
-      } else {
-        authStatus.style.color = '#e53935';
-        authStatus.textContent = '이메일 또는 비밀번호가 올바르지 않습니다.';
-      }
-    });
+    const userEmail = document.getElementById('userEmail');
+    const titleInput = document.getElementById('titleInput');
+    const contentInput = document.getElementById('contentInput');
+    const addBtn = document.getElementById('addBtn');
+    const refreshBtn = document.getElementById('refreshBtn');
+    const dataList = document.getElementById('dataList');
+    const statusBox = document.getElementById('status');
 
-    // 로그아웃 로직
-    document.getElementById('logoutBtn').addEventListener('click', () => {
-      logUserAccess(loggedInUserEmail, "사용자 정상 로그아웃");
-      loggedInUserEmail = null;
-      executeLogoutState();
-      alert('정상적으로 로그아웃 되었습니다.');
-    });
+    let currentUserEmail = null;
 
-    // 접속 이력(Session Log) 적재 함수
-    function logUserAccess(email, statusText) {
-      const sessions = JSON.stringify_parse('user_sessions');
-      if(!sessions[email]) sessions[email] = [];
-      
-      sessions[email].push({
-        timestamp: new Date().toLocaleString(),
-        status: statusText
-      });
-      localStorage.setItem('user_sessions', JSON.stringify(sessions));
-      console.log(`[보안 로그 수집] 유저: ${email} | 상태: ${statusText}`);
+    function setStatus(message, isError = false) {
+      statusBox.style.color = isError ? '#e53935' : '#2e7d32';
+      statusBox.textContent = message;
     }
 
-    // 로그인 내부 상태 변화 반영
-    function executeLoginState(email) {
-      loggedInUserEmail = email;
-      authSection.style.display = 'none';
-      dashboardSection.style.display = 'block';
-      userDisplay.textContent = email;
-      mainStatus.textContent = '로컬 암호화 보안 스토리지 연결 완료.';
-      loadUserData(email);
-    }
-
-    // 로그아웃 내부 상태 변화 반영
-    function executeLogoutState() {
-      authSection.style.display = 'block';
-      dashboardSection.style.display = 'none';
-      authEmail.value = '';
-      authPassword.value = '';
-      authStatus.textContent = '';
-    }
-
-    // Helper: JSON 파싱 유틸리티
-    function JSON.stringify_parse(key) {
+    function getStorageData(key) {
       return JSON.parse(localStorage.getItem(key)) || {};
     }
 
-    // --- 데이터 비즈니스 로직 ---
-    const deviceNameInput = document.getElementById('deviceName');
-    const voltageInput = document.getElementById('voltage');
-    const currentInput = document.getElementById('current');
-    const hoursInput = document.getElementById('hours');
-    const resultBox = document.getElementById('resultBox');
-    const historyList = document.getElementById('historyList');
-
-    document.getElementById('saveBtn').addEventListener('click', calculateAndSave);
-    document.getElementById('clearBtn').addEventListener('click', clearData);
-
-    function loadUserData(email) {
-      const users = JSON.stringify_parse('registered_users');
-      const logs = users[email] ? users[email].logs : [];
-      
-      historyList.innerHTML = '';
-      if (logs && logs.length > 0) {
-        logs.forEach(item => {
-          const div = document.createElement('div');
-          div.className = 'history-item';
-          div.textContent = `[${item.time}] ${item.name} -> 소비전력: ${item.power}W | 전력량: ${item.energy}Wh | CO2 배출량: ${item.co2}g`;
-          historyList.appendChild(div);
-        });
-      } else {
-        historyList.textContent = '아직 저장된 전력 데이터가 없습니다.';
-      }
+    function saveStorageData(key, data) {
+      localStorage.setItem(key, JSON.stringify(data));
     }
 
-    function calculateAndSave() {
-      if (!loggedInUserEmail) return;
+    function getEmailAndPassword() {
+      const email = emailInput.value.trim();
+      const password = passwordInput.value.trim();
 
-      const name = deviceNameInput.value.trim() || "미확인 기기";
-      const V = parseFloat(voltageInput.value);
-      const I = parseFloat(currentInput.value);
-      const h = parseFloat(hoursInput.value);
+      if (!email || !password) {
+        alert('이메일과 비밀번호를 모두 입력해주세요.');
+        return null;
+      }
 
-      if (isNaN(V) || isNaN(I) || isNaN(h)) {
-        alert('모든 전력 수치를 정확히 입력해주세요.');
+      if (password.length < 6) {
+        alert('비밀번호는 6자리 이상이어야 합니다.');
+        return null;
+      }
+
+      return { email, password };
+    }
+
+    // [회원가입 기능]
+    signupBtn.addEventListener('click', () => {
+      const account = getEmailAndPassword();
+      if (!account) return;
+
+      const users = getStorageData('fb_auth_users');
+      if (users[account.email]) {
+        alert('이미 가입된 이메일입니다.');
         return;
       }
 
-      const power = V * I; 
-      const energy = (power * h).toFixed(1); 
-      const co2 = (energy * 0.4781).toFixed(2); 
+      // 유저 데이터 계정 생성 및 할당
+      users[account.email] = { password: account.password };
+      saveStorageData('fb_auth_users', users);
+      
+      alert('회원가입이 완료되었습니다. 로그인 버튼을 눌러주세요.');
+    });
 
-      const timeString = new Date().toLocaleTimeString();
+    // [로그인 기능]
+    loginBtn.addEventListener('click', () => {
+      const account = getEmailAndPassword();
+      if (!account) return;
 
-      resultBox.innerHTML = `
-        <strong>기기명:</strong> ${name}<br>
-        <strong>1. 소비전력 (P = V × I):</strong> ${V}V × ${I}A = <strong>${power} W</strong><br>
-        <strong>2. 사용 전력량 (W = P × t):</strong> ${power}W × ${h}h = <strong>${energy} Wh</strong><br>
-        <strong>3. 탄소 배출량(예측):</strong> <strong>${co2} g CO₂</strong>
-      `;
+      const users = getStorageData('fb_auth_users');
+      if (users[account.email] && users[account.email].password === account.password) {
+        currentUserEmail = account.email;
+        showMainPage(account.email);
+        startRealtimeDataListener(account.email);
+      } else {
+        alert('이메일 또는 비밀번호가 올바르지 않습니다.');
+      }
+    });
 
-      mainStatus.textContent = '격리된 내부 저장소로 전송 중...';
+    // [로그아웃 기능]
+    logoutBtn.addEventListener('click', () => {
+      currentUserEmail = null;
+      showAuthPage();
+    });
 
-      // 해당 유저 데이터 영역에 로그 푸시
-      const users = JSON.stringify_parse('registered_users');
-      if(users[loggedInUserEmail]) {
-        users[loggedInUserEmail].logs.push({
-          name: name, voltage: V, current: I, hours: h,
-          power: power, energy: energy, co2: co2, time: timeString
-        });
-        localStorage.setItem('registered_users', JSON.stringify(users));
+    function showMainPage(email) {
+      authSection.classList.add('hidden');
+      mainSection.classList.remove('hidden');
+      userEmail.textContent = email;
+      emailInput.value = '';
+      passwordInput.value = '';
+    }
+
+    function showAuthPage() {
+      authSection.classList.remove('hidden');
+      mainSection.classList.add('hidden');
+      userEmail.textContent = '';
+      dataList.innerHTML = '';
+    }
+
+    // [데이터 동기화 및 조회]
+    function startRealtimeDataListener(email) {
+      setStatus('데이터를 불러오는 중입니다...');
+      setTimeout(() => {
+        const db = getStorageData('fb_rtdb_data');
+        const userLogs = db[email] || {};
+        renderData(userLogs);
+        setStatus('데이터가 실시간으로 동기화되었습니다.');
+      }, 300);
+    }
+
+    refreshBtn.addEventListener('click', () => {
+      if (currentUserEmail) {
+        startRealtimeDataListener(currentUserEmail);
+      }
+    });
+
+    // [데이터 추가 - Create]
+    addBtn.addEventListener('click', addData);
+
+    function addData() {
+      if (!currentUserEmail) {
+        alert('로그인이 필요합니다.');
+        return;
+      }
+
+      const title = titleInput.value.trim();
+      const content = contentInput.value.trim();
+
+      if (!title || !content) {
+        alert('제목과 내용을 모두 입력해주세요.');
+        return;
+      }
+
+      const db = getStorageData('fb_rtdb_data');
+      if (!db[currentUserEmail]) db[currentUserEmail] = {};
+
+      // 고유 아이디 키값 난수 생성기
+      const newId = 'id_' + Math.random().toString(36).substr(2, 9);
+      db[currentUserEmail][newId] = {
+        title: title,
+        content: content,
+        createdAt: new Date().toLocaleString('ko-KR'),
+        updatedAt: ''
+      };
+
+      saveStorageData('fb_rtdb_data', db);
+      titleInput.value = '';
+      contentInput.value = '';
+      startRealtimeDataListener(currentUserEmail);
+    }
+
+    // [데이터 삭제 - Delete]
+    window.deleteData = function(id) {
+      if (!currentUserEmail) return;
+
+      const isConfirmed = confirm('정말 삭제하시겠습니까?');
+      if (!isConfirmed) return;
+
+      const db = getStorageData('fb_rtdb_data');
+      if (db[currentUserEmail] && db[currentUserEmail][id]) {
+        delete db[currentUserEmail][id];
+        saveStorageData('fb_rtdb_data', db);
+        startRealtimeDataListener(currentUserEmail);
+      }
+    };
+
+    // [데이터 수정 - Update]
+    window.updateData = function(id) {
+      if (!currentUserEmail) return;
+
+      const editTitle = document.getElementById(`edit-title-${id}`).value.trim();
+      const editContent = document.getElementById(`edit-content-${id}`).value.trim();
+
+      if (!editTitle || !editContent) {
+        alert('수정할 제목과 내용을 모두 입력해주세요.');
+        return;
+      }
+
+      const db = getStorageData('fb_rtdb_data');
+      if (db[currentUserEmail] && db[currentUserEmail][id]) {
+        db[currentUserEmail][id].title = editTitle;
+        db[currentUserEmail][id].content = editContent;
+        db[currentUserEmail][id].updatedAt = new Date().toLocaleString('ko-KR');
         
-        setTimeout(() => {
-          mainStatus.textContent = '성공적으로 회원 고유 격리 저장소에 연동 보관되었습니다.';
-          loadUserData(loggedInUserEmail);
-        }, 300);
+        saveStorageData('fb_rtdb_data', db);
+        startRealtimeDataListener(currentUserEmail);
       }
+    };
+
+    // UI에 데이터 출력 렌더러
+    function renderData(data) {
+      dataList.innerHTML = '';
+
+      if (!data || Object.keys(data).length === 0) {
+        dataList.innerHTML = '<div class="empty">아직 저장된 데이터가 없습니다.</div>';
+        return;
+      }
+
+      const entries = Object.entries(data).reverse();
+
+      entries.forEach(([id, item]) => {
+        const div = document.createElement('div');
+        div.className = 'item';
+        div.id = `item-${id}`;
+
+        div.innerHTML = `
+          <div>
+            <p class="item-title">${escapeHTML(item.title || '')}</p>
+            <p class="item-content">${escapeHTML(item.content || '')}</p>
+            <div class="item-date">
+              생성: ${item.createdAt || '-'}
+              ${item.updatedAt ? ` / 수정: ${item.updatedAt}` : ''}
+            </div>
+          </div>
+          <div class="item-actions">
+            <button class="edit-btn" onclick="showEditForm('${id}')">수정</button>
+            <button class="delete-btn" onclick="deleteData('${id}')">삭제</button>
+          </div>
+        `;
+
+        dataList.appendChild(div);
+      });
     }
 
-    function clearData() {
-      if(loggedInUserEmail && confirm('정말 귀하의 모든 전력 데이터를 초기화하시겠습니까?')) {
-        const users = JSON.stringify_parse('registered_users');
-        if(users[loggedInUserEmail]) {
-          users[loggedInUserEmail].logs = [];
-          localStorage.setItem('registered_users', JSON.stringify(users));
-          resultBox.textContent = '나의 데이터가 모두 초기화되었습니다.';
-          mainStatus.textContent = 'DB 초기화 완료';
-          loadUserData(loggedInUserEmail);
-        }
-      }
+    // 수정 창 레이아웃 출력 토글 함수
+    window.showEditForm = function(id) {
+      const db = getStorageData('fb_rtdb_data');
+      if(!db[currentUserEmail] || !db[currentUserEmail][id]) return;
+      
+      const item = db[currentUserEmail][id];
+      const itemBox = document.getElementById(`item-${id}`);
+
+      itemBox.innerHTML = `
+        <div class="edit-box">
+          <input id="edit-title-${id}" type="text" value="${escapeHTML(item.title)}" />
+          <input id="edit-content-${id}" type="text" value="${escapeHTML(item.content)}" />
+          <button class="save-btn" onclick="updateData('${id}')">저장</button>
+          <button class="cancel-btn" onclick="abortEdit()">취소</button>
+        </div>
+      `;
+    };
+
+    window.abortEdit = function() {
+      if(currentUserEmail) startRealtimeDataListener(currentUserEmail);
+    };
+
+    function escapeHTML(text) {
+      return String(text)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
     }
+
+    // 엔터 키 바인딩 단축키 제어
+    document.addEventListener('keydown', function(event) {
+      if (event.key !== 'Enter') return;
+
+      const activeId = document.activeElement.id;
+
+      if (activeId === 'emailInput' || activeId === 'passwordInput') {
+        loginBtn.click();
+      }
+
+      if (activeId === 'titleInput' || activeId === 'contentInput') {
+        addBtn.click();
+      }
+    });
   </script>
 </body>
 </html>
