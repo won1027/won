@@ -6,42 +6,64 @@
   <title>전기전자공학 전력 모니터링 시스템 (인증 보안형)</title>
   <style>
     * { box-sizing: border-box; }
+    
     body {
-      margin: 0; min-height: 100vh;
+      margin: 0;
+      min-height: 100vh;
       background: linear-gradient(135deg, #e0f2f1, #e8eaf6);
-      font-family: Arial, sans-serif; color: #333;
-      display: flex; align-items: center; justify-content: center;
+      font-family: Arial, sans-serif;
+      color: #333;
+      /* 로그인창과 대시보드 모두 안정적으로 중앙 배치 및 레이아웃 유지를 위해 수정 */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px 0;
     }
+
+    /* [로그인 상자] 초기 디스플레이 상태를 확실하게 투명도와 함께 노출 */
+    .auth-box { 
+      display: block; 
+      width: min(420px, 92%); 
+      margin: 0 auto; 
+      padding: 30px 24px; 
+      background: #ffffff; 
+      border-radius: 20px; 
+      border: 1px solid #c5cae9; 
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12);
+    }
+    
+    /* [메인 대시보드 상자] 처음에 무조건 완전히 숨김 처리 */
     .container {
-      width: min(900px, 92%); margin: 20px auto;
-      background: #ffffff; border-radius: 24px; padding: 28px;
+      display: none; 
+      width: min(900px, 92%); 
+      margin: 0 auto;
+      background: #ffffff; 
+      border-radius: 24px; 
+      padding: 28px;
       box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
     }
-    h1 { margin: 0 0 8px; text-align: center; font-size: 26px; color: #1a237e; }
+
+    h1 { margin: 0 0 12px; text-align: center; font-size: 24px; color: #1a237e; }
     .subtitle { text-align: center; color: #5c6bc0; margin-bottom: 24px; font-size: 14px; font-weight: bold; }
     .info { padding: 14px; margin-bottom: 20px; border-radius: 14px; background: #e8eaf6; color: #283593; font-size: 14px; line-height: 1.6; }
     
-    /* 인증 폼 스타일 */
-    .auth-box { width: min(400px, 100%); margin: 0 auto; padding: 20px; background: #fff; border-radius: 16px; border: 1px solid #c5cae9; }
-    .auth-buttons { display: flex; gap: 10px; margin-top: 15px; }
+    .auth-buttons { display: flex; gap: 10px; margin-top: 20px; }
     .auth-btn-sub { background: #5c6bc0; color: white; width: 100%; }
-
-    /* 대시보드 화면 제어 (처음엔 숨김) */
-    #dashboardSection { display: none; }
-    #authSection { display: block; }
 
     .chat-box { display: flex; flex-direction: column; gap: 14px; }
     .input-group { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
     @media (max-width: 600px) { .input-group { grid-template-columns: 1fr; } }
-    .field { display: flex; flex-direction: column; }
-    .label { font-weight: bold; margin-bottom: 6px; color: #3f51b5; }
+    .field { display: flex; flex-direction: column; margin-bottom: 12px; }
+    .label { font-weight: bold; margin-bottom: 6px; color: #3f51b5; font-size: 14px; }
     
-    input { width: 100%; padding: 12px; border: 1px solid #c5cae9; border-radius: 12px; font-size: 15px; outline: none; margin-bottom: 8px; }
+    input { width: 100%; padding: 12px; border: 1px solid #c5cae9; border-radius: 12px; font-size: 15px; outline: none; }
     input:focus { border-color: #3f51b5; box-shadow: 0 0 0 3px rgba(63, 81, 181, 0.15); }
     
     .button-row { display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; margin-top: 10px; }
-    button { border: none; border-radius: 12px; padding: 0 20px; height: 44px; font-size: 14px; cursor: pointer; transition: 0.15s; font-weight: bold; }
+    button { border: none; border-radius: 12px; padding: 0 20px; height: 46px; font-size: 14px; cursor: pointer; transition: 0.15s; font-weight: bold; }
     button:hover { transform: translateY(-2px); opacity: 0.9; }
+    
     .ask-btn { background: #3f51b5; color: white; }
     .clear-btn { background: #b0bec5; color: white; }
     .logout-btn { background: #e53935; color: white; }
@@ -50,8 +72,8 @@
     .history-zone { margin-top: 20px; }
     .history-list { max-height: 180px; overflow-y: auto; background: #fafafa; border: 1px solid #e0e0e0; border-radius: 12px; padding: 12px; font-size: 13px; }
     .history-item { padding: 6px 0; border-bottom: 1px dashed #e0e0e0; }
-    .status { min-height: 24px; color: #666; font-size: 13px; margin-top: 5px; text-align: center; }
-    .user-info { text-align: right; font-size: 13px; color: #555; margin-bottom: 10px; font-weight: bold; }
+    .status { min-height: 24px; color: #666; font-size: 13px; margin-top: 10px; text-align: center; font-weight: bold; }
+    .user-info { text-align: right; font-size: 13px; color: #555; margin-bottom: 15px; font-weight: bold; }
   </style>
 
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -61,7 +83,9 @@
 <body>
 
   <div id="authSection" class="auth-box">
-    <h1 style="font-size: 22px; margin-bottom: 15px;">Smart 전력 대시보드 로그인</h1>
+    <h1>Smart 전력 시스템 로그인</h1>
+    <div style="text-align: center; font-size:12px; color:#777; margin-bottom:20px;">GitHub Pages + Firebase 연동</div>
+    
     <div class="field">
       <div class="label">이메일 주소</div>
       <input type="email" id="authEmail" placeholder="example@email.com" />
@@ -70,6 +94,7 @@
       <div class="label">비밀번호 (6자리 이상)</div>
       <input type="password" id="authPassword" placeholder="비밀번호 입력" />
     </div>
+    
     <div class="auth-buttons">
       <button class="ask-btn" id="loginBtn" style="flex: 1;">로그인</button>
       <button class="auth-btn-sub" id="signUpBtn" style="flex: 1;">회원가입</button>
@@ -87,7 +112,7 @@
     <div class="subtitle">보안 인증 및 실시간 접속 로깅 전력 시스템</div>
 
     <div class="info">
-      <strong>[보안 및 전자공학 융합 캡스톤]</strong> 사용자가 시스템에 접속할 때 고유 UID와 메타데이터(접속 시간)를 데이터베이스에 실시간 적재(Logging)하고, 개인별 소비전력을 격리된 공간에서 관리하는 구조입니다.
+      <strong>[보안 및 전자공학 융합 캡스톤]</strong> 사용자가 시스템에 접속할 때 고유 UID와 메타데이터(접속 시간)를 파이어베이스에 실시간 적재(Logging)하고, 개인별 소비전력을 격리된 공간에서 관리하는 구조입니다.
     </div>
 
     <div class="chat-box">
@@ -133,7 +158,7 @@
   </div>
 
   <script>
-    // ⚠️ 내 파이어베이스 프로젝트 설정값으로 복사-붙여넣기 하세요!
+    // ⚠️ 나의 실제 파이어베이스 설정값값으로 수정하세요!
     const firebaseConfig = {
       apiKey: "YOUR_API_KEY",
       authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
@@ -149,7 +174,7 @@
     const auth = firebase.auth();
     const database = firebase.database();
 
-    // DOM 요소 변수
+    // DOM 요소 연결
     const authSection = document.getElementById('authSection');
     const dashboardSection = document.getElementById('dashboardSection');
     const authEmail = document.getElementById('authEmail');
@@ -161,9 +186,9 @@
     let currentUser = null;
     let dbRef = null;
 
-    // --- [인증 로직 및 파이어베이스 콘솔 전송] ---
+    // --- [인증 및 접속 기록 로깅 기능] ---
     
-    // 회원가입 버튼 클릭 시
+    // 회원가입
     document.getElementById('signUpBtn').addEventListener('click', () => {
       const email = authEmail.value.trim();
       const password = authPassword.value;
@@ -172,14 +197,13 @@
       authStatus.textContent = '회원가입 진행 중...';
       auth.createUserWithEmailAndPassword(email, password)
         .then((userCredential) => { 
-          authStatus.textContent = '회원가입 및 로그인 성공!';
-          // ⭐️ 파이어베이스 DB에 신규 가입 기록 남기기
+          authStatus.textContent = '회원가입 성공!';
           logUserAccess(userCredential.user, "회원가입 및 최초 접속");
         })
         .catch(err => { authStatus.textContent = '오류: ' + err.message; });
     });
 
-    // 로그인 버튼 클릭 시
+    // 로그인
     document.getElementById('loginBtn').addEventListener('click', () => {
       const email = authEmail.value.trim();
       const password = authPassword.value;
@@ -189,29 +213,25 @@
       auth.signInWithEmailAndPassword(email, password)
         .then((userCredential) => { 
           authStatus.textContent = '로그인 성공!';
-          // ⭐️ 파이어베이스 DB에 로그인 기록 남기기
           logUserAccess(userCredential.user, "기존 회원 로그인 접속");
         })
         .catch(err => { authStatus.textContent = '오류: ' + err.message; });
     });
 
-    // 로그아웃 버튼 클릭 시
+    // 로그아웃
     document.getElementById('logoutBtn').addEventListener('click', () => {
       if(currentUser) {
-        // 로그아웃 시 기록도 남기고 싶다면 추가 가능 (선택사항)
         database.ref('user_sessions/' + currentUser.uid).update({
-          last_status: "로그아웃 완료",
+          status: "로그아웃 상태",
           logout_time: new Date().toLocaleString()
         });
       }
       auth.signOut().then(() => { alert('로그아웃 되었습니다.'); });
     });
 
-    // ⭐️ 파이어베이스 콘솔 데이터베이스(Database)에 접속 이력을 남기는 전용 함수 ⭐️
+    // 파이어베이스 콘솔에 접속 유저 이력(시간, 이메일) 쌓기 함수
     function logUserAccess(user, actionType) {
       const accessTime = new Date().toLocaleString();
-      
-      // 파이어베이스 Realtime Database의 'user_sessions' 트리 하위에 저장됩니다.
       database.ref('user_sessions/' + user.uid).set({
         email: user.email,
         uid: user.uid,
@@ -220,31 +240,29 @@
       });
     }
 
-    // 상태 감시자 함수
+    // ⭐️ 화면 전환 상태 감시자 블록 (가장 안정적인 block/none 방식으로 보완)
     auth.onAuthStateChanged((user) => {
       if (user) {
+        // 로그인 완료 -> 대시보드 표시, 로그인창 숨김
         currentUser = user;
         authSection.style.display = 'none';
         dashboardSection.style.display = 'block';
-        document.body.style.display = 'block';
         userDisplay.textContent = user.email;
-        mainStatus.textContent = '보안 인증 완료 및 동기화 상태.';
-        
+        mainStatus.textContent = '보안 서버 연결 성공.';
         loadUserData(user.uid);
       } else {
+        // 로그아웃 상태 -> 로그인창 표시, 대시보드 숨김
         if (dbRef) dbRef.off();
         currentUser = null;
         authSection.style.display = 'block';
         dashboardSection.style.display = 'none';
-        document.body.style.display = 'flex';
         authEmail.value = '';
         authPassword.value = '';
         authStatus.textContent = '';
       }
     });
 
-    // --- [전력 계산 및 저장 비즈니스 로직] ---
-
+    // --- [전력 모니터링 데이터 처리 로직] ---
     const deviceNameInput = document.getElementById('deviceName');
     const voltageInput = document.getElementById('voltage');
     const currentInput = document.getElementById('current');
@@ -306,7 +324,7 @@
         name: name, voltage: V, current: I, hours: h,
         power: power, energy: energy, co2: co2, time: timeString
       }).then(() => {
-        mainStatus.textContent = '성공적으로 개인 보안 클라우드 저장소에 저장되었습니다.';
+        mainStatus.textContent = '성공적으로 개인 클라우드 DB에 기록되었습니다.';
       });
     }
 
