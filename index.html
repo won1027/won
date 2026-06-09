@@ -3,230 +3,137 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>전기전자공학 전력 모니터링 시스템</title>
+  <title>전기전자공학 전력 모니터링 시스템 (인증 보안형)</title>
   <style>
-    * {
-      box-sizing: border-box;
-    }
-
+    * { box-sizing: border-box; }
     body {
-      margin: 0;
-      min-height: 100vh;
+      margin: 0; min-height: 100vh;
       background: linear-gradient(135deg, #e0f2f1, #e8eaf6);
-      font-family: Arial, sans-serif;
-      color: #333;
+      font-family: Arial, sans-serif; color: #333;
+      display: flex; align-items: center; justify-content: center;
     }
-
     .container {
-      width: min(900px, 92%);
-      margin: 40px auto;
-      background: #ffffff;
-      border-radius: 24px;
-      padding: 28px;
+      width: min(900px, 92%); margin: 20px auto;
+      background: #ffffff; border-radius: 24px; padding: 28px;
       box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
     }
+    h1 { margin: 0 0 8px; text-align: center; font-size: 26px; color: #1a237e; }
+    .subtitle { text-align: center; color: #5c6bc0; margin-bottom: 24px; font-size: 14px; font-weight: bold; }
+    .info { padding: 14px; margin-bottom: 20px; border-radius: 14px; background: #e8eaf6; color: #283593; font-size: 14px; line-height: 1.6; }
+    
+    /* 인증 폼 스타일 */
+    .auth-box { width: min(400px, 100%); margin: 0 auto; padding: 20px; background: #fff; border-radius: 16px; border: 1px solid #c5cae9; }
+    .auth-buttons { display: flex; gap: 10px; margin-top: 15px; }
+    .auth-btn-sub { background: #5c6bc0; color: white; width: 100%; }
 
-    h1 {
-      margin: 0 0 8px;
-      text-align: center;
-      font-size: 28px;
-      color: #1a237e;
-    }
+    /* 대시보드 화면 제어 (처음엔 숨김) */
+    #dashboardSection { display: none; }
+    #authSection { display: block; }
 
-    .subtitle {
-      text-align: center;
-      color: #5c6bc0;
-      margin-bottom: 24px;
-      font-size: 14px;
-      font-weight: bold;
-    }
-
-    .info {
-      padding: 14px;
-      margin-bottom: 20px;
-      border-radius: 14px;
-      background: #e8eaf6;
-      color: #283593;
-      font-size: 14px;
-      line-height: 1.6;
-    }
-
-    .chat-box {
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
-
-    .input-group {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 14px;
-    }
-
-    @media (max-width: 600px) {
-      .input-group {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    .field {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .label {
-      font-weight: bold;
-      margin-bottom: 6px;
-      color: #3f51b5;
-    }
-
-    input, select {
-      width: 100%;
-      padding: 12px;
-      border: 1px solid #c5cae9;
-      border-radius: 12px;
-      font-size: 16px;
-      outline: none;
-    }
-
-    input:focus, select:focus {
-      border-color: #3f51b5;
-      box-shadow: 0 0 0 3px rgba(63, 81, 181, 0.15);
-    }
-
-    .button-row {
-      display: flex;
-      gap: 10px;
-      justify-content: flex-end;
-      flex-wrap: wrap;
-    }
-
-    button {
-      border: none;
-      border-radius: 12px;
-      padding: 0 24px;
-      height: 46px;
-      font-size: 15px;
-      cursor: pointer;
-      transition: 0.15s;
-      font-weight: bold;
-    }
-
-    button:hover {
-      transform: translateY(-2px);
-      opacity: 0.9;
-    }
-
-    button:disabled {
-      cursor: not-allowed;
-      opacity: 0.6;
-      transform: none;
-    }
-
-    .ask-btn {
-      background: #3f51b5;
-      color: white;
-    }
-
-    .clear-btn {
-      background: #b0bec5;
-      color: white;
-    }
-
-    .answer-box {
-      min-height: 150px;
-      padding: 18px;
-      border-radius: 18px;
-      background: #f5f5f5;
-      border: 1px solid #e0e0e0;
-      line-height: 1.7;
-    }
-
-    .history-zone {
-      margin-top: 20px;
-    }
-
-    .history-list {
-      max-height: 200px;
-      overflow-y: auto;
-      background: #fafafa;
-      border: 1px solid #e0e0e0;
-      border-radius: 12px;
-      padding: 12px;
-      font-size: 14px;
-    }
-
-    .history-item {
-      padding: 6px 0;
-      border-bottom: 1px dashed #e0e0e0;
-    }
-    .history-item:last-child {
-      border: none;
-    }
-
-    .status {
-      min-height: 24px;
-      color: #666;
-      font-size: 14px;
-    }
+    .chat-box { display: flex; flex-direction: column; gap: 14px; }
+    .input-group { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media (max-width: 600px) { .input-group { grid-template-columns: 1fr; } }
+    .field { display: flex; flex-direction: column; }
+    .label { font-weight: bold; margin-bottom: 6px; color: #3f51b5; }
+    
+    input { width: 100%; padding: 12px; border: 1px solid #c5cae9; border-radius: 12px; font-size: 15px; outline: none; margin-bottom: 8px; }
+    input:focus { border-color: #3f51b5; box-shadow: 0 0 0 3px rgba(63, 81, 181, 0.15); }
+    
+    .button-row { display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; margin-top: 10px; }
+    button { border: none; border-radius: 12px; padding: 0 20px; height: 44px; font-size: 14px; cursor: pointer; transition: 0.15s; font-weight: bold; }
+    button:hover { transform: translateY(-2px); opacity: 0.9; }
+    .ask-btn { background: #3f51b5; color: white; }
+    .clear-btn { background: #b0bec5; color: white; }
+    .logout-btn { background: #e53935; color: white; }
+    
+    .answer-box { min-height: 120px; padding: 16px; border-radius: 18px; background: #f5f5f5; border: 1px solid #e0e0e0; line-height: 1.7; }
+    .history-zone { margin-top: 20px; }
+    .history-list { max-height: 180px; overflow-y: auto; background: #fafafa; border: 1px solid #e0e0e0; border-radius: 12px; padding: 12px; font-size: 13px; }
+    .history-item { padding: 6px 0; border-bottom: 1px dashed #e0e0e0; }
+    .status { min-height: 24px; color: #666; font-size: 13px; margin-top: 5px; text-align: center; }
+    .user-info { text-align: right; font-size: 13px; color: #555; margin-bottom: 10px; font-weight: bold; }
   </style>
 
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 </head>
 <body>
-  <div class="container">
+
+  <div id="authSection" class="auth-box">
+    <h1 style="font-size: 22px; margin-bottom: 15px;">Smart 전력 대시보드 로그인</h1>
+    <div class="field">
+      <div class="label">이메일 주소</div>
+      <input type="email" id="authEmail" placeholder="example@email.com" />
+    </div>
+    <div class="field">
+      <div class="label">비밀번호 (6자리 이상)</div>
+      <input type="password" id="authPassword" placeholder="비밀번호 입력" />
+    </div>
+    <div class="auth-buttons">
+      <button class="ask-btn" id="loginBtn" style="flex: 1;">로그인</button>
+      <button class="auth-btn-sub" id="signUpBtn" style="flex: 1;">회원가입</button>
+    </div>
+    <div id="authStatus" class="status"></div>
+  </div>
+
+  <div id="dashboardSection" class="container">
+    <div class="user-info">
+      접속 계정: <span id="userDisplay" style="color: #3f51b5;"></span> 
+      <button class="logout-btn" id="logoutBtn" style="height: 30px; padding: 0 10px; font-size: 12px; margin-left: 10px; border-radius: 6px;">로그아웃</button>
+    </div>
+    
     <h1>Smart 전력 배전 및 탄소 모니터링</h1>
-    <div class="subtitle">GitHub Pages + Firebase Realtime Database 연동 산출물</div>
+    <div class="subtitle">보안 인증 및 실시간 접속 로깅 전력 시스템</div>
 
     <div class="info">
-      <strong>[전기전자공학 탐구 주제]</strong> 가전기기 및 회로 소자의 소비전력($P=V \times I$)을 계산하고, 누적 전력량에 따른 이산화탄소 배출량을 실시간 수집·모니터링하는 임베디드 웹 시스템 시뮬레이터입니다.
+      <strong>[보안 및 전자공학 융합 캡스톤]</strong> 사용자가 시스템에 접속할 때 고유 UID와 메타데이터(접속 시간)를 데이터베이스에 실시간 적재(Logging)하고, 개인별 소비전력을 격리된 공간에서 관리하는 구조입니다.
     </div>
 
     <div class="chat-box">
       <div class="input-group">
         <div class="field">
           <div class="label">기기/소자 명칭</div>
-          <input type="text" id="deviceName" placeholder="예: 전기회로A, 스마트폰" />
+          <input type="text" id="deviceName" placeholder="예: 거실 에어컨, 실험회로A" />
         </div>
         <div class="field">
           <div class="label">동작 전압 (V)</div>
-          <input type="number" id="voltage" value="220" placeholder="V" />
+          <input type="number" id="voltage" value="220" />
         </div>
       </div>
 
       <div class="input-group">
         <div class="field">
           <div class="label">측정 전류 (A)</div>
-          <input type="number" id="current" step="0.1" value="1" placeholder="A" />
+          <input type="number" id="current" step="0.1" value="1.5" />
         </div>
         <div class="field">
           <div class="label">사용 시간 (Hour)</div>
-          <input type="number" id="hours" value="1" placeholder="시간" />
+          <input type="number" id="hours" value="1" />
         </div>
       </div>
 
       <div class="button-row">
-        <button class="clear-btn" id="clearBtn">기록 초기화</button>
+        <button class="clear-btn" id="clearBtn">나의 기록 초기화</button>
         <button class="ask-btn" id="saveBtn">전력 데이터 전송</button>
       </div>
 
-      <div id="status" class="status"></div>
+      <div id="mainStatus" class="status"></div>
 
       <div>
         <div class="label">실시간 계산 결과 (전기공학 공식 적용)</div>
-        <div id="resultBox" class="answer-box">데이터를 입력하고 전송 버튼을 누르세요.</div>
+        <div id="resultBox" class="answer-box">데이터를 입력하고 전력 데이터 전송 버튼을 누르세요.</div>
       </div>
 
       <div class="history-zone">
-        <div class="label">Firebase DB 실시간 누적 전송 로그</div>
+        <div class="label">나의 실시간 누적 전송 로그 (보안 격리 공간)</div>
         <div id="historyList" class="history-list">저장된 기록이 없습니다.</div>
       </div>
     </div>
   </div>
 
   <script>
-    // ⚠️ 2번 단계에서 Firebase 설정값으로 반드시 교체하세요!
+    // ⚠️ 내 파이어베이스 프로젝트 설정값으로 복사-붙여넣기 하세요!
     const firebaseConfig = {
       apiKey: "YOUR_API_KEY",
       authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
@@ -239,42 +146,137 @@
 
     // Firebase 초기화
     firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
     const database = firebase.database();
+
+    // DOM 요소 변수
+    const authSection = document.getElementById('authSection');
+    const dashboardSection = document.getElementById('dashboardSection');
+    const authEmail = document.getElementById('authEmail');
+    const authPassword = document.getElementById('authPassword');
+    const authStatus = document.getElementById('authStatus');
+    const mainStatus = document.getElementById('mainStatus');
+    const userDisplay = document.getElementById('userDisplay');
+    
+    let currentUser = null;
+    let dbRef = null;
+
+    // --- [인증 로직 및 파이어베이스 콘솔 전송] ---
+    
+    // 회원가입 버튼 클릭 시
+    document.getElementById('signUpBtn').addEventListener('click', () => {
+      const email = authEmail.value.trim();
+      const password = authPassword.value;
+      if(!email || !password) { alert('이메일과 비밀번호를 입력하세요.'); return; }
+      
+      authStatus.textContent = '회원가입 진행 중...';
+      auth.createUserWithEmailAndPassword(email, password)
+        .then((userCredential) => { 
+          authStatus.textContent = '회원가입 및 로그인 성공!';
+          // ⭐️ 파이어베이스 DB에 신규 가입 기록 남기기
+          logUserAccess(userCredential.user, "회원가입 및 최초 접속");
+        })
+        .catch(err => { authStatus.textContent = '오류: ' + err.message; });
+    });
+
+    // 로그인 버튼 클릭 시
+    document.getElementById('loginBtn').addEventListener('click', () => {
+      const email = authEmail.value.trim();
+      const password = authPassword.value;
+      if(!email || !password) { alert('이메일과 비밀번호를 입력하세요.'); return; }
+      
+      authStatus.textContent = '로그인 진행 중...';
+      auth.signInWithEmailAndPassword(email, password)
+        .then((userCredential) => { 
+          authStatus.textContent = '로그인 성공!';
+          // ⭐️ 파이어베이스 DB에 로그인 기록 남기기
+          logUserAccess(userCredential.user, "기존 회원 로그인 접속");
+        })
+        .catch(err => { authStatus.textContent = '오류: ' + err.message; });
+    });
+
+    // 로그아웃 버튼 클릭 시
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      if(currentUser) {
+        // 로그아웃 시 기록도 남기고 싶다면 추가 가능 (선택사항)
+        database.ref('user_sessions/' + currentUser.uid).update({
+          last_status: "로그아웃 완료",
+          logout_time: new Date().toLocaleString()
+        });
+      }
+      auth.signOut().then(() => { alert('로그아웃 되었습니다.'); });
+    });
+
+    // ⭐️ 파이어베이스 콘솔 데이터베이스(Database)에 접속 이력을 남기는 전용 함수 ⭐️
+    function logUserAccess(user, actionType) {
+      const accessTime = new Date().toLocaleString();
+      
+      // 파이어베이스 Realtime Database의 'user_sessions' 트리 하위에 저장됩니다.
+      database.ref('user_sessions/' + user.uid).set({
+        email: user.email,
+        uid: user.uid,
+        last_access_time: accessTime,
+        status: actionType
+      });
+    }
+
+    // 상태 감시자 함수
+    auth.onAuthStateChanged((user) => {
+      if (user) {
+        currentUser = user;
+        authSection.style.display = 'none';
+        dashboardSection.style.display = 'block';
+        document.body.style.display = 'block';
+        userDisplay.textContent = user.email;
+        mainStatus.textContent = '보안 인증 완료 및 동기화 상태.';
+        
+        loadUserData(user.uid);
+      } else {
+        if (dbRef) dbRef.off();
+        currentUser = null;
+        authSection.style.display = 'block';
+        dashboardSection.style.display = 'none';
+        document.body.style.display = 'flex';
+        authEmail.value = '';
+        authPassword.value = '';
+        authStatus.textContent = '';
+      }
+    });
+
+    // --- [전력 계산 및 저장 비즈니스 로직] ---
 
     const deviceNameInput = document.getElementById('deviceName');
     const voltageInput = document.getElementById('voltage');
     const currentInput = document.getElementById('current');
     const hoursInput = document.getElementById('hours');
-    
     const resultBox = document.getElementById('resultBox');
     const historyList = document.getElementById('historyList');
-    const statusBox = document.getElementById('status');
-    
-    const saveBtn = document.getElementById('saveBtn');
-    const clearBtn = document.getElementById('clearBtn');
 
-    saveBtn.addEventListener('click', calculateAndSave);
-    clearBtn.addEventListener('click', clearFirebaseData);
+    document.getElementById('saveBtn').addEventListener('click', calculateAndSave);
+    document.getElementById('clearBtn').addEventListener('click', clearFirebaseData);
 
-    // 페이지 로드 시 Firebase에서 기존 데이터 실시간으로 불러오기
-    database.ref('power_logs').on('value', (snapshot) => {
-      const data = snapshot.val();
-      historyList.innerHTML = '';
-      if (data) {
-        statusBox.textContent = 'Firebase Realtime DB 연결 성공 및 동기화 완료';
-        for (let key in data) {
-          const item = data[key];
-          const div = document.createElement('div');
-          div.className = 'history-item';
-          div.textContent = `[${item.time}] ${item.name} -> 소비전력: ${item.power}W | 전력량: ${item.energy}Wh | CO2 배출량: ${item.co2}g`;
-          historyList.appendChild(div);
+    function loadUserData(uid) {
+      dbRef = database.ref('users/' + uid + '/power_logs');
+      dbRef.on('value', (snapshot) => {
+        const data = snapshot.val();
+        historyList.innerHTML = '';
+        if (data) {
+          for (let key in data) {
+            const item = data[key];
+            const div = document.createElement('div');
+            div.className = 'history-item';
+            div.textContent = `[${item.time}] ${item.name} -> 소비전력: ${item.power}W | 전력량: ${item.energy}Wh | CO2 배출량: ${item.co2}g`;
+            historyList.appendChild(div);
+          }
+        } else {
+          historyList.textContent = '아직 저장된 전력 데이터가 없습니다.';
         }
-      } else {
-        historyList.textContent = 'DB에 저장된 전력 데이터가 없습니다.';
-      }
-    });
+      });
+    }
 
     function calculateAndSave() {
+      if (!currentUser) return;
+
       const name = deviceNameInput.value.trim() || "미확인 기기";
       const V = parseFloat(voltageInput.value);
       const I = parseFloat(currentInput.value);
@@ -285,45 +287,34 @@
         return;
       }
 
-      // 전기전자공학 계산 공식 적용
-      const power = V * I; // 소비전력 P = V * I (와트, W)
-      const energy = (power * h).toFixed(1); // 전력량 E = P * t (와트시, Wh)
-      const co2 = (energy * 0.4781).toFixed(2); // 한국 전력 탄소배출계수 적용 (0.4781g/Wh)
+      const power = V * I; 
+      const energy = (power * h).toFixed(1); 
+      const co2 = (energy * 0.4781).toFixed(2); 
 
       const timeString = new Date().toLocaleTimeString();
 
-      // UI에 결과 표시
       resultBox.innerHTML = `
         <strong>기기명:</strong> ${name}<br>
         <strong>1. 소비전력 (P = V × I):</strong> ${V}V × ${I}A = <strong>${power} W</strong><br>
         <strong>2. 사용 전력량 (W = P × t):</strong> ${power}W × ${h}h = <strong>${energy} Wh</strong><br>
-        <strong>3. 이산화탄소 배출량 예측값:</strong> <strong>${co2} g CO₂</strong> (탄소 중립 공학적 지표)
+        <strong>3. 탄소 배출량(예측):</strong> <strong>${co2} g CO₂</strong>
       `;
 
-      statusBox.textContent = 'Firebase DB로 전송 중...';
+      mainStatus.textContent = '데이터 클라우드 전송 중...';
 
-      // Firebase Realtime DB에 데이터 푸시(저장)
-      database.ref('power_logs').push({
-        name: name,
-        voltage: V,
-        current: I,
-        hours: h,
-        power: power,
-        energy: energy,
-        co2: co2,
-        time: timeString
+      database.ref('users/' + currentUser.uid + '/power_logs').push({
+        name: name, voltage: V, current: I, hours: h,
+        power: power, energy: energy, co2: co2, time: timeString
       }).then(() => {
-        statusBox.textContent = 'Firebase에 전력 데이터 저장 성공!';
-      }).catch((error) => {
-        statusBox.textContent = '전송 실패: ' + error.message;
+        mainStatus.textContent = '성공적으로 개인 보안 클라우드 저장소에 저장되었습니다.';
       });
     }
 
     function clearFirebaseData() {
-      if(confirm('Firebase의 모든 전력 데이터를 삭제하시겠습니까?')) {
-        database.ref('power_logs').remove().then(() => {
-          resultBox.textContent = '데이터가 초기화되었습니다.';
-          statusBox.textContent = 'DB 초기화 완료';
+      if(currentUser && confirm('정말 귀하의 모든 전력 데이터를 초기화하시겠습니까?')) {
+        database.ref('users/' + currentUser.uid + '/power_logs').remove().then(() => {
+          resultBox.textContent = '나의 데이터가 모두 초기화되었습니다.';
+          mainStatus.textContent = 'DB 초기화 완료';
         });
       }
     }
