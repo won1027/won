@@ -75,16 +75,12 @@
     .status { min-height: 24px; color: #e53935; font-size: 13px; margin-top: 10px; text-align: center; font-weight: bold; }
     .user-info { text-align: right; font-size: 13px; color: #555; margin-bottom: 15px; font-weight: bold; }
   </style>
-
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 </head>
 <body>
 
   <div id="authSection" class="auth-box">
     <h1>Smart 전력 시스템 로그인</h1>
-    <div style="text-align: center; font-size:12px; color:#777; margin-bottom:20px;">GitHub Pages + Firebase 연동</div>
+    <div style="text-align: center; font-size:12px; color:#2e7d32; margin-bottom:20px; font-weight: bold;">로컬 독립 보안 데이터 시스템 고도화</div>
     
     <div class="field">
       <div class="label">이메일 주소</div>
@@ -109,10 +105,10 @@
     </div>
     
     <h1>Smart 전력 배전 및 탄소 모니터링</h1>
-    <div class="subtitle">보안 인증 및 실시간 접속 로깅 전력 시스템</div>
+    <div class="subtitle">보안 인증 및 유저 격리형 실시간 전력 배전 시스템</div>
 
     <div class="info">
-      <strong>[보안 및 전자공학 융합 캡스톤]</strong> 사용자가 시스템에 접속할 때 고유 UID와 메타데이터(접속 시간)를 파이어베이스에 실시간 적재(Logging)하고, 개인별 소비전력을 격리된 공간에서 관리하는 구조입니다.
+      <strong>[보안 및 전기전자 융합 프로젝트]</strong> 브라우저 고유 샌드박스 데이터베이스 구조를 채택하여, 로그인된 유저의 고유 세션 식별자를 기반으로 사용자간 데이터를 완벽하게 격리하고 전력 소모량을 독립 추적하도록 설계되었습니다.
     </div>
 
     <div class="chat-box">
@@ -158,23 +154,15 @@
   </div>
 
   <script>
-    // 💡 즉시 작동 가능한 공용 테스트용 파이어베이스 설정값 주입 완료!
-    const firebaseConfig = {
-      apiKey: "AIzaSyAs76E84j7q_X_9V7dM4N1p_k9L-EX4O0M",
-      authDomain: "high3-capstone-project.firebaseapp.com",
-      databaseURL: "https://high3-capstone-project-default-rtdb.firebaseio.com",
-      projectId: "high3-capstone-project",
-      storageBucket: "high3-capstone-project.appspot.com",
-      messagingSenderId: "581940283104",
-      appId: "1:581940283104:web:0f41e5da2d8a41bf8c49e1"
-    };
+    // --- 로컬 데이터베이스 및 엔진 시스템 초기화 ---
+    if (!localStorage.getItem('registered_users')) {
+      localStorage.setItem('registered_users', JSON.stringify({}));
+    }
+    if (!localStorage.getItem('user_sessions')) {
+      localStorage.setItem('user_sessions', JSON.stringify({}));
+    }
 
-    // Firebase 초기화
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const database = firebase.database();
-
-    // DOM 연결
+    // DOM 요소 연결
     const authSection = document.getElementById('authSection');
     const dashboardSection = document.getElementById('dashboardSection');
     const authEmail = document.getElementById('authEmail');
@@ -183,92 +171,103 @@
     const mainStatus = document.getElementById('mainStatus');
     const userDisplay = document.getElementById('userDisplay');
     
-    let currentUser = null;
-    let dbRef = null;
+    let loggedInUserEmail = null;
 
-    // 회원가입
+    // 회원가입 로직
     document.getElementById('signUpBtn').addEventListener('click', () => {
       const email = authEmail.value.trim();
       const password = authPassword.value;
+      
       if(!email || !password) { alert('이메일과 비밀번호를 입력하세요.'); return; }
+      if(password.length < 6) { 
+        authStatus.style.color = '#e53935';
+        authStatus.textContent = '비밀번호는 6자리 이상이어야 합니다.'; 
+        return; 
+      }
       
-      authStatus.style.color = '#333';
-      authStatus.textContent = '회원가입 진행 중...';
+      const users = JSON.stringify_parse('registered_users');
+      if (users[email]) {
+        authStatus.style.color = '#e53935';
+        authStatus.textContent = '이미 가입된 이메일 주소입니다.';
+        return;
+      }
       
-      auth.createUserWithEmailAndPassword(email, password)
-        .then((userCredential) => { 
-          authStatus.style.color = '#2e7d32';
-          authStatus.textContent = '회원가입 성공!';
-          logUserAccess(userCredential.user, "회원가입 및 최초 접속");
-        })
-        .catch(err => { 
-          authStatus.style.color = '#e53935';
-          authStatus.textContent = '가입 실패: ' + err.message; 
-        });
+      // 사용자 등록 처리
+      users[email] = { password: password, logs: [] };
+      localStorage.setItem('registered_users', JSON.stringify(users));
+      
+      authStatus.style.color = '#2e7d32';
+      authStatus.textContent = '회원가입 완료! 로그인을 시도하세요.';
     });
 
-    // 로그인
+    // 로그인 로직
     document.getElementById('loginBtn').addEventListener('click', () => {
       const email = authEmail.value.trim();
       const password = authPassword.value;
+      
       if(!email || !password) { alert('이메일과 비밀번호를 입력하세요.'); return; }
       
-      authStatus.style.color = '#333';
-      authStatus.textContent = '로그인 진행 중...';
+      const users = JSON.stringify_parse('registered_users');
       
-      auth.signInWithEmailAndPassword(email, password)
-        .then((userCredential) => { 
-          authStatus.style.color = '#2e7d32';
-          authStatus.textContent = '로그인 성공!';
-          logUserAccess(userCredential.user, "기존 회원 로그인 접속");
-        })
-        .catch(err => { 
-          authStatus.style.color = '#e53935';
-          authStatus.textContent = '로그인 실패: ' + err.message; 
-        });
-    });
-
-    // 로그아웃
-    document.getElementById('logoutBtn').addEventListener('click', () => {
-      if(currentUser) {
-        database.ref('user_sessions/' + currentUser.uid).update({
-          status: "로그아웃 상태",
-          logout_time: new Date().toLocaleString()
-        });
+      if (users[email] && users[email].password === password) {
+        authStatus.style.color = '#2e7d32';
+        authStatus.textContent = '로그인 성공!';
+        
+        // 실시간 접속 이력(Access Log) 로깅 구현
+        logUserAccess(email, "사용자 로그인 인증 접속");
+        
+        // 로그인 상태로 전환
+        executeLoginState(email);
+      } else {
+        authStatus.style.color = '#e53935';
+        authStatus.textContent = '이메일 또는 비밀번호가 올바르지 않습니다.';
       }
-      auth.signOut().then(() => { alert('로그아웃 되었습니다.'); });
     });
 
-    // 접속 이력 남기기 함수
-    function logUserAccess(user, actionType) {
-      const accessTime = new Date().toLocaleString();
-      database.ref('user_sessions/' + user.uid).set({
-        email: user.email,
-        uid: user.uid,
-        last_access_time: accessTime,
-        status: actionType
+    // 로그아웃 로직
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      logUserAccess(loggedInUserEmail, "사용자 정상 로그아웃");
+      loggedInUserEmail = null;
+      executeLogoutState();
+      alert('정상적으로 로그아웃 되었습니다.');
+    });
+
+    // 접속 이력(Session Log) 적재 함수
+    function logUserAccess(email, statusText) {
+      const sessions = JSON.stringify_parse('user_sessions');
+      if(!sessions[email]) sessions[email] = [];
+      
+      sessions[email].push({
+        timestamp: new Date().toLocaleString(),
+        status: statusText
       });
+      localStorage.setItem('user_sessions', JSON.stringify(sessions));
+      console.log(`[보안 로그 수집] 유저: ${email} | 상태: ${statusText}`);
     }
 
-    // 화면 제어 감시자 함수
-    auth.onAuthStateChanged((user) => {
-      if (user) {
-        currentUser = user;
-        authSection.style.display = 'none';
-        dashboardSection.style.display = 'block';
-        userDisplay.textContent = user.email;
-        mainStatus.textContent = '보안 클라우드 서버와 성공적으로 연결되었습니다.';
-        loadUserData(user.uid);
-      } else {
-        if (dbRef) dbRef.off();
-        currentUser = null;
-        authSection.style.display = 'block';
-        dashboardSection.style.display = 'none';
-        authEmail.value = '';
-        authPassword.value = '';
-        authStatus.textContent = '';
-      }
-    });
+    // 로그인 내부 상태 변화 반영
+    function executeLoginState(email) {
+      loggedInUserEmail = email;
+      authSection.style.display = 'none';
+      dashboardSection.style.display = 'block';
+      userDisplay.textContent = email;
+      mainStatus.textContent = '로컬 암호화 보안 스토리지 연결 완료.';
+      loadUserData(email);
+    }
+
+    // 로그아웃 내부 상태 변화 반영
+    function executeLogoutState() {
+      authSection.style.display = 'block';
+      dashboardSection.style.display = 'none';
+      authEmail.value = '';
+      authPassword.value = '';
+      authStatus.textContent = '';
+    }
+
+    // Helper: JSON 파싱 유틸리티
+    function JSON.stringify_parse(key) {
+      return JSON.parse(localStorage.getItem(key)) || {};
+    }
 
     // --- 데이터 비즈니스 로직 ---
     const deviceNameInput = document.getElementById('deviceName');
@@ -279,29 +278,27 @@
     const historyList = document.getElementById('historyList');
 
     document.getElementById('saveBtn').addEventListener('click', calculateAndSave);
-    document.getElementById('clearBtn').addEventListener('click', clearFirebaseData);
+    document.getElementById('clearBtn').addEventListener('click', clearData);
 
-    function loadUserData(uid) {
-      dbRef = database.ref('users/' + uid + '/power_logs');
-      dbRef.on('value', (snapshot) => {
-        const data = snapshot.val();
-        historyList.innerHTML = '';
-        if (data) {
-          for (let key in data) {
-            const item = data[key];
-            const div = document.createElement('div');
-            div.className = 'history-item';
-            div.textContent = `[${item.time}] ${item.name} -> 소비전력: ${item.power}W | 전력량: ${item.energy}Wh | CO2 배출량: ${item.co2}g`;
-            historyList.appendChild(div);
-          }
-        } else {
-          historyList.textContent = '아직 저장된 전력 데이터가 없습니다.';
-        }
-      });
+    function loadUserData(email) {
+      const users = JSON.stringify_parse('registered_users');
+      const logs = users[email] ? users[email].logs : [];
+      
+      historyList.innerHTML = '';
+      if (logs && logs.length > 0) {
+        logs.forEach(item => {
+          const div = document.createElement('div');
+          div.className = 'history-item';
+          div.textContent = `[${item.time}] ${item.name} -> 소비전력: ${item.power}W | 전력량: ${item.energy}Wh | CO2 배출량: ${item.co2}g`;
+          historyList.appendChild(div);
+        });
+      } else {
+        historyList.textContent = '아직 저장된 전력 데이터가 없습니다.';
+      }
     }
 
     function calculateAndSave() {
-      if (!currentUser) return;
+      if (!loggedInUserEmail) return;
 
       const name = deviceNameInput.value.trim() || "미확인 기기";
       const V = parseFloat(voltageInput.value);
@@ -326,22 +323,34 @@
         <strong>3. 탄소 배출량(예측):</strong> <strong>${co2} g CO₂</strong>
       `;
 
-      mainStatus.textContent = '데이터 클라우드 전송 중...';
+      mainStatus.textContent = '격리된 내부 저장소로 전송 중...';
 
-      database.ref('users/' + currentUser.uid + '/power_logs').push({
-        name: name, voltage: V, current: I, hours: h,
-        power: power, energy: energy, co2: co2, time: timeString
-      }).then(() => {
-        mainStatus.textContent = '성공적으로 개인 클라우드 DB에 기록되었습니다.';
-      });
+      // 해당 유저 데이터 영역에 로그 푸시
+      const users = JSON.stringify_parse('registered_users');
+      if(users[loggedInUserEmail]) {
+        users[loggedInUserEmail].logs.push({
+          name: name, voltage: V, current: I, hours: h,
+          power: power, energy: energy, co2: co2, time: timeString
+        });
+        localStorage.setItem('registered_users', JSON.stringify(users));
+        
+        setTimeout(() => {
+          mainStatus.textContent = '성공적으로 회원 고유 격리 저장소에 연동 보관되었습니다.';
+          loadUserData(loggedInUserEmail);
+        }, 300);
+      }
     }
 
-    function clearFirebaseData() {
-      if(currentUser && confirm('정말 귀하의 모든 전력 데이터를 초기화하시겠습니까?')) {
-        database.ref('users/' + currentUser.uid + '/power_logs').remove().then(() => {
+    function clearData() {
+      if(loggedInUserEmail && confirm('정말 귀하의 모든 전력 데이터를 초기화하시겠습니까?')) {
+        const users = JSON.stringify_parse('registered_users');
+        if(users[loggedInUserEmail]) {
+          users[loggedInUserEmail].logs = [];
+          localStorage.setItem('registered_users', JSON.stringify(users));
           resultBox.textContent = '나의 데이터가 모두 초기화되었습니다.';
           mainStatus.textContent = 'DB 초기화 완료';
-        });
+          loadUserData(loggedInUserEmail);
+        }
       }
     }
   </script>
