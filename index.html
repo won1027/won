@@ -66,6 +66,18 @@
       line-height: 1.6;
     }
 
+    /* 에러 디버깅 박스 */
+    .error-log {
+      color: #d32f2f;
+      background: #ffebee;
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 13px;
+      margin-top: 5px;
+      display: none;
+      word-break: break-all;
+    }
+
     /* 공통 입력창 및 버튼 */
     input, select, textarea {
       padding: 12px 14px;
@@ -222,6 +234,7 @@
         <input id="passwordInput" type="password" placeholder="비밀번호 (6자리 이상)" />
         <button class="login-btn" id="loginBtn">로그인</button>
         <button class="signup-btn" id="signupBtn">신규 연구원 등록 (회원가입)</button>
+        <div id="authErrorLog" class="error-log"></div>
       </div>
       <div class="notice">
         <strong>💡 플랫폼 이용 안내</strong><br />
@@ -348,7 +361,6 @@
       off
     } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
 
-    // 네가 구성한 Firebase Config 시스템 그대로 연동
     const firebaseConfig = {
       apiKey: 'AIzaSyDO-v52Ehwphh5gW0WBzu9_DliMhOzy4Yo',
       authDomain: 'kang-f4e85.firebaseapp.com',
@@ -364,7 +376,6 @@
     const auth = getAuth(app);
     const database = getDatabase(app);
 
-    // 중계 GAS 서버 Endpoints 세팅 완료
     const CHAT_GAS_URL = 'https://script.google.com/macros/s/AKfycbyTS-n6dNxhXGHxck-BL97z9l2PPrqZbl0tqjtPIP44MVFtyOiTwizk4jva8GMuV38p/exec';
     const TTS_GAS_URL = 'https://script.google.com/macros/s/AKfycbxDNMIktE288seW2Mr5YgksYFeAP3SNl8YyQZFa1DuvD0N_8pjRLDmxkZBYyQ4WGPmt/exec';
 
@@ -377,6 +388,7 @@
     const signupBtn = document.getElementById('signupBtn');
     const logoutBtn = document.getElementById('logoutBtn');
     const userEmail = document.getElementById('userEmail');
+    const authErrorLog = document.getElementById('authErrorLog');
 
     // 탭1 요소
     const titleInput = document.getElementById('titleInput');
@@ -408,45 +420,82 @@
     let currentUser = null;
     let currentItemsRef = null;
 
-    // 탭 전환 코어 함수 구현
+    // 탭 전환 함수
     window.switchTab = function(tabId) {
       document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
       document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
       
       document.getElementById(tabId).classList.add('active');
-      event.currentTarget.classList.add('active');
+      if(event && event.currentTarget) {
+        event.currentTarget.classList.add('active');
+      }
     };
 
-    // [인증 엔진] 유저 관리 및 제어 루틴
     function getAccountInfo() {
       const email = emailInput.value.trim();
       const password = passwordInput.value.trim();
-      if (!email || !password) { alert('계정 아이디와 보안 패스워드를 모두 기입하세요.'); return null; }
-      if (password.length < 6) { alert('보안을 위해 패스워드는 6자리 이상 규격이어야 합니다.'); return null; }
+      authErrorLog.style.display = 'none';
+      authErrorLog.textContent = '';
+
+      if (!email || !password) { 
+        showAuthError('계정 아이디(이메일)와 패스워드를 모두 기입하세요.'); 
+        return null; 
+      }
+      if (password.length < 6) { 
+        showAuthError('보안을 위해 비밀번호는 6자리 이상이어야 합니다.'); 
+        return null; 
+      }
       return { email, password };
     }
 
-    signupBtn.addEventListener('click', async () => {
+    function showAuthError(msg) {
+      authErrorLog.textContent = msg;
+      authErrorLog.style.display = 'block';
+    }
+
+    // 신규 연구원 회원가입
+    signupBtn.addEventListener('click', async (e) => {
+      e.preventDefault(); // 이벤트 전파 차단
       const account = getAccountInfo();
       if (!account) return;
       try {
+        signupBtn.disabled = true;
+        signupBtn.textContent = '등록 중...';
         await createUserWithEmailAndPassword(auth, account.email, account.password);
-        alert('신규 공학 연구원 등록이 성공적으로 승인되었습니다.');
-      } catch (error) { alert(getKoreanErrorMessage(error.code)); }
+        alert('신규 공학 연구원 등록이 성공적으로 승인되었습니다!');
+      } catch (error) { 
+        console.error("Signup Error: ", error);
+        showAuthError(getKoreanErrorMessage(error.code) || error.message); 
+      } finally {
+        signupBtn.disabled = false;
+        signupBtn.textContent = '신규 연구원 등록 (회원가입)';
+      }
     });
 
-    loginBtn.addEventListener('click', async () => {
+    // 로그인
+    loginBtn.addEventListener('click', async (e) => {
+      e.preventDefault();
       const account = getAccountInfo();
       if (!account) return;
       try {
+        loginBtn.disabled = true;
+        loginBtn.textContent = '인증 중...';
         await signInWithEmailAndPassword(auth, account.email, account.password);
-      } catch (error) { alert(getKoreanErrorMessage(error.code)); }
+      } catch (error) { 
+        console.error("Login Error: ", error);
+        showAuthError(getKoreanErrorMessage(error.code) || error.message); 
+      } finally {
+        loginBtn.disabled = false;
+        loginBtn.textContent = '로그인';
+      }
     });
 
+    // 로그아웃
     logoutBtn.addEventListener('click', async () => {
-      try { await signOut(auth); } catch (error) { alert('인증 해제(로그아웃) 도중 통신 장애가 발생했습니다.'); }
+      try { await signOut(auth); } catch (error) { alert('인증 해제 도중 통신 장애가 발생했습니다.'); }
     });
 
+    // 상태 변화 감지 리스너
     onAuthStateChanged(auth, (user) => {
       if (user) {
         currentUser = user;
@@ -464,7 +513,7 @@
       }
     });
 
-    // [데이터베이스 엔진] 실시간 노트 데이터 동기화 루틴
+    // 실시간 데이터베이스 제어
     function startRealtimeDataListener(uid) {
       stopRealtimeDataListener();
       statusBox.textContent = '클라우드 데이터베이스 연결 중...';
@@ -551,7 +600,7 @@
       `;
     };
 
-    // [AI 대화형 연동 엔진] OpenAI Chat 연동
+    // OpenAI Chat 연동
     askBtn.addEventListener('click', askChatGPT);
     clearChatBtn.addEventListener('click', () => { questionInput.value = ''; answerBox.textContent = '어시스턴트의 답변 대기 중...'; chatStatusBox.textContent = ''; });
 
@@ -581,7 +630,7 @@
       }
     }
 
-    // [AI TTS 오디오 엔진] OpenAI Voice 신호 생성 처리
+    // OpenAI TTS 연동
     makeBtn.addEventListener('click', makeSpeech);
     clearTtsBtn.addEventListener('click', () => { textInput.value = ''; ttsStatusBox.textContent = ''; resultBox.classList.add('hidden'); audioPlayer.removeAttribute('src'); });
 
@@ -634,7 +683,6 @@
       return URL.createObjectURL(new Blob(byteArrays, { type: mimeType }));
     }
 
-    // 보안 이스케이프 및 에러 핸들러 유틸리티
     function escapeHTML(text) {
       return String(text).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#039;');
     }
@@ -642,25 +690,33 @@
 
     function getKoreanErrorMessage(code) {
       switch (code) {
-        case 'auth/email-already-in-use': return '시스템에 기등록된 이메일 연구자 계정입니다.';
-        case 'auth/invalid-email': return '이메일 프로토콜 계정 포맷이 적합하지 않습니다.';
-        case 'auth/weak-password': return '보안 강도가 약합니다. 패스워드를 재설계하세요.';
-        case 'auth/user-not-found': return '등록되지 않은 계정 정보입니다.';
-        case 'auth/wrong-password': return '인증 보안 패스워드가 정확하지 않습니다.';
-        case 'auth/invalid-credential': return '자격 증명 정보가 잘못되었거나 만료되었습니다.';
-        case 'auth/network-request-failed': return '서버 네트워크 링크 상태를 확인하십시오.';
-        default: return `예외 에러 핸들러 트랙 검출: ${code}`;
+        case 'auth/email-already-in-use': return '이미 가입된 연구자 이메일 계정입니다. 로그인을 진행해 주세요.';
+        case 'auth/invalid-email': return '이메일 형식(예: example@email.com)이 유효하지 않습니다.';
+        case 'auth/weak-password': return '보안이 취약합니다. 비밀번호를 6자리 이상 조합해 주세요.';
+        case 'auth/user-not-found': return '등록되지 않은 이메일 계정입니다.';
+        case 'auth/wrong-password': return '비밀번호가 일치하지 않습니다.';
+        case 'auth/invalid-credential': return '이메일 혹은 비밀번호 정보가 올바르지 않습니다.';
+        case 'auth/network-request-failed': return '서버 네트워크 연결 상태를 확인하십시오.';
+        default: return `Firebase 오류 코드: ${code}`;
       }
     }
 
-    // 전역 단축키 관제 모듈
+    // 전역 단축키 제어 (인증 부분 버그 방지를 위해 수정)
     document.addEventListener('keydown', function(event) {
-      if (event.key !== 'Enter') return;
       const activeId = document.activeElement.id;
-      if (activeId === 'emailInput' || activeId === 'passwordInput') loginBtn.click();
-      if (activeId === 'titleInput' || activeId === 'contentInput') addBtn.click();
-      if (event.ctrlKey && activeId === 'questionInput') askChatGPT();
-      if (event.ctrlKey && activeId === 'textInput') makeSpeech();
+      if (event.key === 'Enter') {
+        if (activeId === 'emailInput' || activeId === 'passwordInput') {
+          // 인풋창에서 그냥 엔터를 치면 기본 로그인 처리
+          loginBtn.click();
+        }
+        if (activeId === 'titleInput' || activeId === 'contentInput') {
+          addBtn.click();
+        }
+      }
+      if (event.ctrlKey && event.key === 'Enter') {
+        if (activeId === 'questionInput') askChatGPT();
+        if (activeId === 'textInput') makeSpeech();
+      }
     });
   </script>
 </body>
