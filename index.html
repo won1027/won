@@ -600,13 +600,15 @@
       `;
     };
 
-    // OpenAI Chat 연동
+    // OpenAI Chat 연동 + 데이터베이스 실시간 저장 로직 추가
     askBtn.addEventListener('click', askChatGPT);
     clearChatBtn.addEventListener('click', () => { questionInput.value = ''; answerBox.textContent = '어시스턴트의 답변 대기 중...'; chatStatusBox.textContent = ''; });
 
     async function askChatGPT() {
       const question = questionInput.value.trim();
       if (!question) { alert('공학적 질문 시나리오를 설계 후 전송하세요.'); return; }
+      if (!currentUser) { alert('로그인이 필요한 서비스입니다.'); return; }
+      
       try {
         askBtn.disabled = true; askBtn.textContent = '연산 중...';
         answerBox.textContent = '인공지능 코어에서 전기전자 지식을 추론하고 있습니다... 잠시만 기다려 주세요.';
@@ -619,8 +621,19 @@
         const data = await response.json();
         if (data.error) throw new Error(data.error);
 
-        answerBox.textContent = data.answer || '리포트를 도출하지 못했습니다.';
-        chatStatusBox.textContent = '추론 연산 성공 및 연동 완료';
+        const answer = data.answer || '리포트를 도출하지 못했습니다.';
+        answerBox.textContent = answer;
+        chatStatusBox.textContent = '추론 연산 성공. 파이어베이스에 동기화 중...';
+
+        // 🌟 [추가 기능] 질문 내용과 AI의 답변을 파이어베이스 Realtime DB에 실시간 저장합니다.
+        const aiQuestionsRef = ref(database, `users/${currentUser.uid}/ai_questions`);
+        await set(push(aiQuestionsRef), {
+          question: question,
+          answer: answer,
+          timestamp: new Date().toLocaleString('ko-KR')
+        });
+
+        chatStatusBox.textContent = '추론 연산 성공 및 데이터베이스 업로드 완료';
       } catch (error) {
         console.error(error);
         answerBox.textContent = '지식 엔진 분석 연산 실패:\n' + error.message;
@@ -706,7 +719,6 @@
       const activeId = document.activeElement.id;
       if (event.key === 'Enter') {
         if (activeId === 'emailInput' || activeId === 'passwordInput') {
-          // 인풋창에서 그냥 엔터를 치면 기본 로그인 처리
           loginBtn.click();
         }
         if (activeId === 'titleInput' || activeId === 'contentInput') {
